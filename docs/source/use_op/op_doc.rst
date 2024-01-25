@@ -494,7 +494,7 @@ FLAT:
          }]
 
 
-(1) sum: Support multiple (including multiple feature fields when defining table structure correspondingly).
+(1) vector: Support multiple (including multiple feature fields when defining table structure correspondingly).
 
 (2) field: Specifies the name of the feature field when the table is created.
 

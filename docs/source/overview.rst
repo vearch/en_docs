@@ -12,7 +12,7 @@ Node: Vearch includes three types of nodes, master node (metadata management nod
 
 db: Similar to a database, the db will be created first in the cluster.
 
-Space: Similar to a database table, the library contains several tables.
+Space: Similar to a database table, the db contains several spaces.
 
 Partition: Usually each table contains several data fragments. Each data fragment only contains part of the data of the table, corresponding to partition_num.
 
@@ -20,7 +20,7 @@ Replica: Each data shard can have multiple replicas to ensure high availability 
 
 Document: The basic data unit of the table. Each document usually contains several fields. Generally speaking, the document contains at least one vector field.
 
-Field: The basic data unit of the document, including vector fields and scalar fields (numeric types integer, long, float, double and string type string).
+Field: The basic data unit of the document, including vector fields and scalar fields (numeric types integer, long, float, double and string type).
 
 Vector index: Use vector index to accelerate queries, so the index attribute must be set to true for vector fields.
 

@@ -120,6 +120,23 @@ IVFPQ:
       "nsubvector": 64
   }
 
+set ivfpq with hnsw：
+
+::
+
+  "index_size": 2600000,
+  "id_type": "string",
+  "retrieval_type": "IVFPQ",
+  "retrieval_param": {
+      "metric_type": "InnerProduct",
+      "ncentroids": 65536,
+      "nsubvector": 64,
+      "hnsw" : {
+          "nlinks": 32,
+          "efConstruction": 200,
+          "efSearch": 64
+      }
+  }
 
 HNSW:
 

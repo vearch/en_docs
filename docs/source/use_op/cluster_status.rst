@@ -66,7 +66,7 @@ The operation command is as follows:
 ::
 
   export ETCDCTL_API=3
-# The principle of etcd mirroring is to read the key row by row and write it to another cluster. Among them: sourceMasterIP is a node of the original cluster master, and targetMasterIP is a node of the target cluster master.
+  # The principle of etcd mirroring is to read the key row by row and write it to another cluster. Among them: sourceMasterIP is a node of the original cluster master, and targetMasterIP is a node of the target cluster master.
   # ETCDCTL_API=3 ./etcdctl make-mirror target --endpoints=source
   ETCDCTL_API=3 ./etcdctl make-mirror ${targetMasterIP}:2370 --endpoints=${sourceMasterIP}:2370
 

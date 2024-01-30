@@ -262,6 +262,13 @@ View Space
   
   curl -XGET http://master_server/space/$db_name/$space_name
 
+View Space document number
+--------
+::
+  
+  curl -XGET http://master_server/_cluster/health?db=$db_name&space=$space_name
+
+check the doc_num field
 
 Delete Space
 ------------

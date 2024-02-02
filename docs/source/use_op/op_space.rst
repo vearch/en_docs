@@ -49,11 +49,7 @@ Create Space
           "field7": {
               "type": "vector",
               "dimension": 256,
-              "format": "normalization",
-              "store_type": "RocksDB",
-              "store_param": {
-                  "cache_size": 2048,
-              }
+              "format": "normalization"
           }
       }
   }
@@ -104,18 +100,25 @@ engine config:
 
 IVFPQ:
 
-+---------------+-------------------------------+------------+------------+----------------------------------------+
-|field name     |field description              |field type  |must        |remarks                                 |
-+===============+===============================+============+============+========================================+
-|ncentroids     |number of buckets for indexing |int         |false       |default 2048                            |
-+---------------+-------------------------------+------------+------------+----------------------------------------+
-|nsubvector     |PQ disassembler vector size    |int         |false       |default 64, must be a multiple of 4     |
-+---------------+-------------------------------+------------+------------+----------------------------------------+
++------------------+--------------------------------+------------+-------+-------------------+
+|    field name    |       field description        | field type | must  |      remarks      |
++==================+================================+============+=======+===================+
+| metric_type      | computer type                  | string     | true  | L2 orInnerProduct |
++------------------+--------------------------------+------------+-------+-------------------+
+| ncentroids       | number of buckets for indexing | int        | false | default 2048      |
++------------------+--------------------------------+------------+-------+-------------------+
+| nsubvector       | PQ disassembler vector size    | int        | false | default 64        |
++------------------+--------------------------------+------------+-------+-------------------+
+| bucket_init_size | bucket init size               | int        | false | default 1000      |
++------------------+--------------------------------+------------+-------+-------------------+
+| bucket_max_size  | max size for each bucket       | int        | false | default 1280000   |
++------------------+--------------------------------+------------+-------+-------------------+
 
 ::
  
   "retrieval_type": "IVFPQ",
   "retrieval_param": {
+      "metric_type": "InnerProduct",
       "ncentroids": 2048,
       "nsubvector": 64
   }
@@ -140,18 +143,21 @@ set ivfpq with hnsw：
 
 HNSW:
 
-+---------------+------------------------------+------------+------------+---------------+
-|field name     |field description             |field type  |must        |remarks        |
-+===============+==============================+============+============+===============+
-|nlinks         |Number of node neighbors      |int         |false       |default 32     |
-+---------------+------------------------------+------------+------------+---------------+
-|efConstruction |Composition traversal depth   |int         |false       |default 40     |
-+---------------+------------------------------+------------+------------+---------------+
++----------------+-----------------------------+------------+-------+-------------------+
+|   field name   |      field description      | field type | must  |      remarks      |
++================+=============================+============+=======+===================+
+| metric_type    | computer type               | string     | true  | L2 orInnerProduct |
++----------------+-----------------------------+------------+-------+-------------------+
+| nlinks         | Number of node neighbors    | int        | false | default 32        |
++----------------+-----------------------------+------------+-------+-------------------+
+| efConstruction | Composition traversal depth | int        | false | default 40        |
++----------------+-----------------------------+------------+-------+-------------------+
 
 ::
 
   "retrieval_type": "HNSW",
   "retrieval_param": {
+      "metric_type": "L2",
       "nlinks": 32,
       "efConstruction": 40
   }
@@ -162,34 +168,40 @@ HNSW:
 
 GPU (Compiled version for GPU):
 
-+---------------+---------------------------------+------------+------------+----------------------------------------+
-|field name     |field description                |field type  |must        |remarks                                 |
-+===============+=================================+============+============+========================================+
-|ncentroids     |number of buckets for indexing   |int         |false       |default 2048                            |
-+---------------+---------------------------------+------------+------------+----------------------------------------+
-|nsubvector     |PQ disassembler vector size      |int         |false       |default 64, must be a multiple of 4     | 
-+---------------+---------------------------------+------------+------------+----------------------------------------+
++-------------+--------------------------------+------------+-------+-------------------------------------+
+| field name  |       field description        | field type | must  |               remarks               |
++=============+================================+============+=======+=====================================+
+| metric_type | computer type                  | string     | true  | L2 orInnerProduct                   |
++-------------+--------------------------------+------------+-------+-------------------------------------+
+| ncentroids  | number of buckets for indexing | int        | false | default 2048                        |
++-------------+--------------------------------+------------+-------+-------------------------------------+
+| nsubvector  | PQ disassembler vector size    | int        | false | default 64, must be a multiple of 4 |
++-------------+--------------------------------+------------+-------+-------------------------------------+
 
 ::
  
   "retrieval_type": "GPU",
   "retrieval_param": {
+      "metric_type": "InnerProduct",
       "ncentroids": 2048,
       "nsubvector": 64
   }
 
 IVFFLAT:
 
-+---------------+-------------------------------+------------+------------+----------------------------------------+
-|field name     |field description              |field type  |must        |remarks                                 |
-+===============+===============================+============+============+========================================+
-|ncentroids     |number of buckets for indexing |int         |default     |default 256                             |
-+---------------+-------------------------------+------------+------------+----------------------------------------+
++-------------+--------------------------------+------------+---------+-------------------+
+| field name  |       field description        | field type |  must   |      remarks      |
++=============+================================+============+=========+===================+
+| metric_type | computer type                  | string     | true    | L2 orInnerProduct |
++-------------+--------------------------------+------------+---------+-------------------+
+| ncentroids  | number of buckets for indexing | int        | default | default 256       |
++-------------+--------------------------------+------------+---------+-------------------+
 
 ::
  
   "retrieval_type": "IVFFLAT",
   "retrieval_param": {
+      "metric_type": "InnerProduct", 
       "ncentroids": 256
   }
 
@@ -212,6 +224,23 @@ BINARYIVF:
   
   Note: 1. The vector length is a multiple of 8
 
+FLAT:
+
++-------------+-------------------+------------+------+-------------------+
+| field name  | field description | field type | must |      remarks      |
++=============+===================+============+======+===================+
+| metric_type | computer type     | string     | true | L2 orInnerProduct |
++-------------+-------------------+------------+------+-------------------+
+
+::
+ 
+  "retrieval_type": "FLAT",
+  "retrieval_param": {
+      "metric_type": "InnerProduct"
+  }
+  
+ Note: 1. The vector storage method only supports MemoryOnly
+
 properties config:
 
 1. There are four types (that is, the value of type) supported by the field defined by the table space structure: keyword, integer, float, vector (keyword is equivalent to string).
@@ -228,7 +257,7 @@ properties config:
 +=============+===========================+===========+========+============================================================+
 |dimension    |feature dimension          |int        |true    |Value is an integral multiple of the above nsubvector value |
 +-------------+---------------------------+-----------+--------+------------------------------------------------------------+
-|store_type   |feature storage type       |string     |false   |support Mmap and RocksDB, default Mmap                      |
+|store_type   |feature storage type       |string     |false   |support MemoryOnly and RocksDB                              |
 +-------------+---------------------------+-----------+--------+------------------------------------------------------------+
 |store_param  |storage parameter settings |json       |false   |set the memory size of data                                 |
 +-------------+---------------------------+-----------+--------+------------------------------------------------------------+
@@ -238,19 +267,16 @@ properties config:
 
 5. dimension: define that type is the field of vector, and specify the dimension size of the feature.
 
-6. store_type: raw vector storage type, there are the following three options
+6. store_type: raw vector storage type, there are the following options
 
 "MemoryOnly": Vectors are stored in the memory, and the amount of stored vectors is limited by the memory. It is suitable for scenarios where the amount of vectors on a single machine is not large (10 millions) and high performance requirements
 
 "RocksDB": Vectors are stored in RockDB (disk), and the amount of stored vectors is limited by the size of the disk. It is suitable for scenarios where the amount of vectors on a single machine is huge (above 100 millions) and performance requirements are not high.
 
-"Mmap": The original vector is stored in a disk file. Use the cache to improve performance. The amount of storage is limited by disk size. Applicable to the single machine data volume is huge (over 100 million), the performance requirements are not high scene.
 
 7. store_param: storage parameters of different store_type, it contains the following two sub-parameters
 
-cache_size: interge type, the unit is M bytes, the default is 1024. When store_type="RocksDB", it indicates the read buffer size of RocksDB. The larger the value, the better the performance of reading vector. Generally set 1024, 2048, 4096 and 6144; when store_type ="Mmap", represents the size of read buffer, generally 512, 1024, 2048 and 4096, can be set according to the actual application scenario; store_type ="MemoryOnly", cache_size is not in effect.
-
-compress: set to {"rate":16} to compress by 50%;Default does not compress.
+cache_size: interge type, the unit is M bytes, the default is 1024. When store_type="RocksDB", it indicates the read buffer size of RocksDB. The larger the value, the better the performance of reading vector. Generally set 1024, 2048, 4096 and 6144; store_type ="MemoryOnly", cache_size is not in effect.
 
 
 Scalar Index

@@ -254,7 +254,7 @@ Search based on document_ids
             }
             ]
         },
-        "retrieval_param": {
+        "index_params": {
             "metric_type": "L2"
         },
         "size": 3,
@@ -291,7 +291,7 @@ After receiving the request, the background splits it according to the character
             }
             ]
         },
-        "retrieval_param": {
+        "index_params": {
             "metric_type": "L2"
         },
         "size": 3,
@@ -386,7 +386,7 @@ The overall json structure of the query parameters is as follows:
             "vector": [],
             "filter": []
         },
-        "retrieval_param": {"nprobe": 20},
+        "index_params": {"nprobe": 20},
         "fields": ["field1", "field2"],
         "is_brute_search": 0,
         "online_log_level": "debug",
@@ -429,7 +429,7 @@ Parameter Description:
 +------------------+------------+-------+-----------------------------------------------------------------------------------------+
 
 
-The retrieval_param parameter specifies the parameters for model calculation. Different models support different parameters, as shown in the following example:
+The index_params parameter specifies the parameters for model calculation. Different models support different parameters, as shown in the following example:
 
 - metric_type: calculation type, supports InnerProduct and L2, the default is L2.
 
@@ -444,7 +444,7 @@ The retrieval_param parameter specifies the parameters for model calculation. Di
 IVFPQ:
 ::
   
-    "retrieval_param": {
+    "index_params": {
         "parallel_on_queries": 1,
         "recall_num" : 100,
         "nprobe": 80,
@@ -453,7 +453,7 @@ IVFPQ:
 
 GPU:
 ::
-    "retrieval_param": {
+    "index_params": {
         "recall_num" : 100,
         "nprobe": 80,
         "metric_type": "L2"
@@ -461,7 +461,7 @@ GPU:
 
 HNSW:
 ::
-    "retrieval_param": {
+    "index_params": {
         "efSearch": 64,
         "metric_type": "L2"
     }
@@ -469,7 +469,7 @@ HNSW:
 IVFFLAT:
 ::
 
-    "retrieval_param": {
+    "index_params": {
         "parallel_on_queries": 1,
         "nprobe": 80,
         "metric_type": "L2"
@@ -478,7 +478,7 @@ IVFFLAT:
 FLAT:
 ::
 
-    "retrieval_param": {
+    "index_params": {
         "metric_type": "L2"
     }
 

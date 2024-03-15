@@ -8,7 +8,7 @@ Cluster Status
 
 ::
 
-   curl -XGET http://master_server/_cluster/stats
+   curl -XGET http://master_server/cluster/stats
 
 
 Health Status
@@ -16,15 +16,22 @@ Health Status
 
 ::
 
-   curl -XGET http://master_server/_cluster/health
+   curl -XGET http://master_server/cluster/health
 
 
-Port Status
+Server Status
 --------
 
 ::
 
-   curl -XGET http://master_server/list/server
+   curl -XGET http://master_server/servers
+
+Partition Status
+--------
+
+::
+
+   curl -XGET http://master_server/partitions
 
 Clean lock
 --------
@@ -42,7 +49,7 @@ Replica expansion and contraction
 
   curl -XPOST -H "content-type: application/json"  -d'
   {
-      "partition_id":1,
+      "partition_ids":[1],
       "node_id": 1,
       "method": 0
   }

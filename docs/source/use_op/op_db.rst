@@ -8,7 +8,7 @@ List Database
 
 ::
 
-   curl -XGET http://master_server/list/db
+   curl -XGET http://master_server/dbs
 
 
 Create Database
@@ -16,9 +16,7 @@ Create Database
 
 ::
 
-   curl -XPUT -H "content-type:application/json" -d '{
-     "name": "db_name"
-   }' http://master_server/db/_create
+   curl -XPOST http://master_server/dbs/$db_name
 
 
 View Database
@@ -26,7 +24,7 @@ View Database
 
 ::
 
-   curl -XGET http://master_server/db/$db_name
+   curl -XGET http://master_server/dbs/$db_name
 
 
 Delete Database
@@ -34,7 +32,7 @@ Delete Database
 
 ::
 
-   curl -XDELETE http://master_server/db/$db_name
+   curl -XDELETE http://master_server/dbs/$db_name
 
 Cannot delete if there is a table space under the datebase.
 
@@ -43,7 +41,7 @@ View Database Space
 
 ::
 
-   curl -XGET http://master_server/list/space?db=$db_name
+   curl -XGET http://master_server/dbs/$db_name/spaces
 
 
 

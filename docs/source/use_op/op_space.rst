@@ -13,14 +13,9 @@ Create Space
       "name": "space1",
       "partition_num": 1,
       "replica_num": 1,
-      "engine": {
-          "index_size": 70000,
-          "id_type": "String",
-          "retrieval_type": "IVFPQ",
-          "retrieval_param": {
-              "ncentroids": 256,
-              "nsubvector": 32 
-          }
+      "index": {
+          "index_name": "gamma",
+          "index_type": "HNSW"
       },
       "properties": {
           "field1": {
@@ -53,24 +48,24 @@ Create Space
           }
       }
   }
-  ' http://master_server/space/$db_name/_create
+  ' http://master_server/dbs/$db_name/spaces
 
 
 Parameter description:
 
-+-------------+------------------+---------------+----------+------------------+
-|field name   |field description | field type    |must      |remarks           | 
-+=============+==================+===============+==========+==================+
-|name         |space name        |string         |true      |                  |
-+-------------+------------------+---------------+----------+------------------+
-|partition_num|partition number  |int            |true      |                  |
-+-------------+------------------+---------------+----------+------------------+
-|replica_num  |replica number    |int            |true      |                  |
-+-------------+------------------+---------------+----------+------------------+
-|engine       |engine config     |json           |true      |                  |
-+-------------+------------------+---------------+----------+------------------+
-|properties   |schema config     |json           |true      |define space field|
-+-------------+------------------+---------------+----------+------------------+
++---------------+-------------------+------------+------+--------------------+
+|  field name   | field description | field type | must |      remarks       |
++===============+===================+============+======+====================+
+| name          | space name        | string     | true |                    |
++---------------+-------------------+------------+------+--------------------+
+| partition_num | partition number  | int        | true |                    |
++---------------+-------------------+------------+------+--------------------+
+| replica_num   | replica number    | int        | true |                    |
++---------------+-------------------+------------+------+--------------------+
+| index         | index config      | json       | true |                    |
++---------------+-------------------+------------+------+--------------------+
+| fields        | schema config     | json       | true | define space field |
++---------------+-------------------+------------+------+--------------------+
 
 1、Space name not be empty, do not start with numbers or underscores, try not to use special characters, etc.
 
@@ -78,46 +73,42 @@ Parameter description:
 
 3、replica_num: The number of copies is recommended to be set to 3, which means that each piece of data has two backups to ensure high availability of data. 
 
-engine config:
+index config:
 
-+----------------+------------------------------+-----------+----------+---------------------------------------+
-|field name      |field description             |field type |must      |remarks                                | 
-+================+==============================+===========+==========+=======================================+
-|index_size      |slice index threshold         |int        |false     |                                       |
-+----------------+------------------------------+-----------+----------+---------------------------------------+
-|id_type         |Unique primary key type       |string     |false     |                                       |
-+----------------+------------------------------+-----------+----------+---------------------------------------+
-|retrieval_type  |search model                  |string     |true      |                                       |
-+----------------+------------------------------+-----------+----------+---------------------------------------+
-|retrieval_param |model config                  |json       |false     |                                       |
-+----------------+------------------------------+-----------+----------+---------------------------------------+
++--------------+-----------------------+------------+-------+---------+
+|  field name  |   field description   | field type | must  | remarks |
++==============+=======================+============+=======+=========+
+| index_name   | slice index threshold | int        | false |         |
++--------------+-----------------------+------------+-------+---------+
+| index_type   | index type            | string     | true  |         |
++--------------+-----------------------+------------+-------+---------+
+| index_params | index parameters      | json       | false |         |
++--------------+-----------------------+------------+-------+---------+
 
-1. index_size: Specify the number of records in each partition to start index creation. If not specified, no index will be created. 
-
-2. id_type Specify primary key type, can be string or long.
-
-3. retrieval_type search model, now support IVFPQ，HNSW，GPU，IVFFLAT，BINARYIVF，FLAT.
+1. index_type search model, now support IVFPQ，HNSW，GPU，IVFFLAT，BINARYIVF，FLAT.
 
 IVFPQ:
 
-+------------------+--------------------------------+------------+-------+-------------------+
-|    field name    |       field description        | field type | must  |      remarks      |
-+==================+================================+============+=======+===================+
-| metric_type      | computer type                  | string     | true  | L2 orInnerProduct |
-+------------------+--------------------------------+------------+-------+-------------------+
-| ncentroids       | number of buckets for indexing | int        | false | default 2048      |
-+------------------+--------------------------------+------------+-------+-------------------+
-| nsubvector       | PQ disassembler vector size    | int        | false | default 64        |
-+------------------+--------------------------------+------------+-------+-------------------+
-| bucket_init_size | bucket init size               | int        | false | default 1000      |
-+------------------+--------------------------------+------------+-------+-------------------+
-| bucket_max_size  | max size for each bucket       | int        | false | default 1280000   |
-+------------------+--------------------------------+------------+-------+-------------------+
++--------------------+--------------------------------+------------+-------+-------------------------+
+|     field name     |       field description        | field type | must  |         remarks         |
++====================+================================+============+=======+=========================+
+| metric_type        | computer type                  | string     | false | L2 orInnerProduct       |
++--------------------+--------------------------------+------------+-------+-------------------------+
+| ncentroids         | number of buckets for indexing | int        | false | default 2048            |
++--------------------+--------------------------------+------------+-------+-------------------------+
+| nsubvector         | PQ disassembler vector size    | int        | false | default 64              |
++--------------------+--------------------------------+------------+-------+-------------------------+
+| bucket_init_size   | bucket init size               | int        | false | default 1000            |
++--------------------+--------------------------------+------------+-------+-------------------------+
+| bucket_max_size    | max size for each bucket       | int        | false | default 1280000         |
++--------------------+--------------------------------+------------+-------+-------------------------+
+| training_threshold | training data size             | int        | false | default ncentroids * 39 |
++--------------------+--------------------------------+------------+-------+-------------------------+
 
 ::
  
-  "retrieval_type": "IVFPQ",
-  "retrieval_param": {
+  "index_type": "IVFPQ",
+  "index_params": {
       "metric_type": "InnerProduct",
       "ncentroids": 2048,
       "nsubvector": 64
@@ -129,8 +120,8 @@ set ivfpq with hnsw：
 
   "index_size": 2600000,
   "id_type": "string",
-  "retrieval_type": "IVFPQ",
-  "retrieval_param": {
+  "index_type": "IVFPQ",
+  "index_params": {
       "metric_type": "InnerProduct",
       "ncentroids": 65536,
       "nsubvector": 64,
@@ -155,8 +146,8 @@ HNSW:
 
 ::
 
-  "retrieval_type": "HNSW",
-  "retrieval_param": {
+  "index_type": "HNSW",
+  "index_params": {
       "metric_type": "L2",
       "nlinks": 32,
       "efConstruction": 40
@@ -168,20 +159,21 @@ HNSW:
 
 GPU (Compiled version for GPU):
 
-+-------------+--------------------------------+------------+-------+-------------------------------------+
-| field name  |       field description        | field type | must  |               remarks               |
-+=============+================================+============+=======+=====================================+
-| metric_type | computer type                  | string     | true  | L2 orInnerProduct                   |
-+-------------+--------------------------------+------------+-------+-------------------------------------+
-| ncentroids  | number of buckets for indexing | int        | false | default 2048                        |
-+-------------+--------------------------------+------------+-------+-------------------------------------+
-| nsubvector  | PQ disassembler vector size    | int        | false | default 64, must be a multiple of 4 |
-+-------------+--------------------------------+------------+-------+-------------------------------------+
-
++--------------------+--------------------------------+------------+-------+-------------------------------------+
+|     field name     |       field description        | field type | must  |               remarks               |
++====================+================================+============+=======+=====================================+
+| metric_type        | computer type                  | string     | true  | L2 orInnerProduct                   |
++--------------------+--------------------------------+------------+-------+-------------------------------------+
+| ncentroids         | number of buckets for indexing | int        | false | default 2048                        |
++--------------------+--------------------------------+------------+-------+-------------------------------------+
+| nsubvector         | PQ disassembler vector size    | int        | false | default 64, must be a multiple of 4 |
++--------------------+--------------------------------+------------+-------+-------------------------------------+
+| training_threshold | training data size             | int        | false | default ncentroids * 39             |
++--------------------+--------------------------------+------------+-------+-------------------------------------+
 ::
  
-  "retrieval_type": "GPU",
-  "retrieval_param": {
+  "index_type": "GPU",
+  "index_params": {
       "metric_type": "InnerProduct",
       "ncentroids": 2048,
       "nsubvector": 64
@@ -189,18 +181,19 @@ GPU (Compiled version for GPU):
 
 IVFFLAT:
 
-+-------------+--------------------------------+------------+---------+-------------------+
-| field name  |       field description        | field type |  must   |      remarks      |
-+=============+================================+============+=========+===================+
-| metric_type | computer type                  | string     | true    | L2 orInnerProduct |
-+-------------+--------------------------------+------------+---------+-------------------+
-| ncentroids  | number of buckets for indexing | int        | default | default 256       |
-+-------------+--------------------------------+------------+---------+-------------------+
-
++--------------------+--------------------------------+------------+---------+-------------------------+
+|     field name     |       field description        | field type |  must   |         remarks         |
++====================+================================+============+=========+=========================+
+| metric_type        | computer type                  | string     | true    | L2 orInnerProduct       |
++--------------------+--------------------------------+------------+---------+-------------------------+
+| ncentroids         | number of buckets for indexing | int        | default | default 256             |
++--------------------+--------------------------------+------------+---------+-------------------------+
+| training_threshold | training data size             | int        | false   | default ncentroids * 39 |
++--------------------+--------------------------------+------------+---------+-------------------------+
 ::
  
-  "retrieval_type": "IVFFLAT",
-  "retrieval_param": {
+  "index_type": "IVFFLAT",
+  "index_params": {
       "metric_type": "InnerProduct", 
       "ncentroids": 256
   }
@@ -209,16 +202,17 @@ IVFFLAT:
 
 BINARYIVF:
 
-+---------------+-------------------------------+------------+------------+----------------------------------------+
-|field name     |field description              |field type  |must        |remarks                                 |
-+===============+===============================+============+============+========================================+
-|ncentroids     |number of buckets for indexing |int         |default     |default 256                             |
-+---------------+-------------------------------+------------+------------+----------------------------------------+
-
++--------------------+--------------------------------+------------+---------+-------------------------+
+|     field name     |       field description        | field type |  must   |         remarks         |
++====================+================================+============+=========+=========================+
+| ncentroids         | number of buckets for indexing | int        | default | default 256             |
++--------------------+--------------------------------+------------+---------+-------------------------+
+| training_threshold | training data size             | int        | false   | default ncentroids * 39 |
++--------------------+--------------------------------+------------+---------+-------------------------+
 ::
  
-  "retrieval_type": "BINARYIVF",
-  "retrieval_param": {
+  "index_type": "BINARYIVF",
+  "index_params": {
       "ncentroids": 256
   }
   
@@ -234,8 +228,8 @@ FLAT:
 
 ::
  
-  "retrieval_type": "FLAT",
-  "retrieval_param": {
+  "index_type": "FLAT",
+  "index_params": {
       "metric_type": "InnerProduct"
   }
   
@@ -280,64 +274,16 @@ cache_size: interge type, the unit is M bytes, the default is 1024. When store_t
 
 
 Scalar Index
-Gamma engine supports scalar index, provides the filtering function for scalar data, the opening method refers to the 2nd and 3rd in the "properties config", and the retrieval method refers to the "filter json structure elucidation" in the "Search"
+Gamma engine supports scalar index, provides the filtering function for scalar data, the opening method refers to the 2nd and 3rd in the "fields config", and the retrieval method refers to the "filter json structure elucidation" in the "Search"
 
 View Space
 ----------
 ::
   
-  curl -XGET http://master_server/space/$db_name/$space_name
-
-View Space document number
---------
-::
-  
-  curl -XGET http://master_server/_cluster/health?db=$db_name&space=$space_name
-
-check the doc_num field
+  curl -XGET http://master_server/dbs/$db_name/spaces/$space_name
 
 Delete Space
 ------------
 ::
  
-  curl -XDELETE http://master_server/space/$db_name/$space_name
-
-
-Modify cache size
-------------
-::
- 
-  curl -H "content-type: application/json" -XPOST -d'
-  {
-      "cache_models": [
-          {
-              "name": "table",
-              "cache_size": 1024,
-          },
-          {
-              "name": "string",
-              "cache_size": 1024,
-          },
-          {
-              "name": "field7",
-              "cache_size": 1024,
-          }
-      ]
-  }
-  ' http://master_server/config/$db_name/$space_name
-
-1. table cache size: Represents the cache size of all fixed-length scalar fields (integer, long, float, double). The default value is 512M.
-
-2. string cache size: Represents the cache size of all variable-length scalar fields (string). The default value is 512M.
-
-3. store_type is the vector field of Mmap that can modify the cache size.
-
-
-Get cache size
-------------
-::
- 
-  curl -XGET http://master_server/config/$db_name/$space_name
-
-
-1. store_type is the vector field of Mmap to view the cache size. Other storage methods for vector fields do not support viewing the cache size.
+  curl -XDELETE http://master_server/dbs/$db_name/spaces/$space_name

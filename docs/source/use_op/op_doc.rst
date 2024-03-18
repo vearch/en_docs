@@ -104,10 +104,12 @@ Delete data according to query filtering results
   curl -H "content-type: application/json" -XPOST -d'
   {
       "query": {
-          "sum": [{}]
+          "filter": [{}]
       }
   }   
   ' http://router_server/$db_name/$space_name/_delete_by_query
+
+see detail infomation in search
 
 Batch delete according to ID
 ::

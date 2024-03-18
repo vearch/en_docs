@@ -226,6 +226,24 @@ Query interface return format
         }]
     }
 
+Parameter Description:
+
++--------------+------------+-------+----------------------------------------------------------------------------------------+
+|  field name  | field type | must  |                                        remarks                                         |
++==============+============+=======+========================================================================================+
+| document_ids | json array | false | filter or document_ids must have one                                                   |
++--------------+------------+-------+----------------------------------------------------------------------------------------+
+| partition_id | json array | false | specify get document on which partition                                                |
++--------------+------------+-------+----------------------------------------------------------------------------------------+
+| filter       | json array | false | query criteria filtering: numeric filtering + label filtering                          |
++--------------+------------+-------+----------------------------------------------------------------------------------------+
+| fields       | json array | false | Specify which fields to return. By default, only the unique id and score are returned. |
++--------------+------------+-------+----------------------------------------------------------------------------------------+
+| vector_value | bool       | false | default false                                                                          |
++--------------+------------+-------+----------------------------------------------------------------------------------------+
+| size         | int        | false | Specify the number of returned results, the default is 50                              |
++--------------+------------+-------+----------------------------------------------------------------------------------------+
+
 document/search
 --------
 Supports similarity retrieval based on specified ID or vector value, and returns the specified Top K most similar Documents.

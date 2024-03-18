@@ -282,6 +282,213 @@ View Space
   
   curl -XGET http://master_server/dbs/$db_name/spaces/$space_name
 
+return data
++---------------+-------------------------------------+------------+------+------------------------------------------+
+|  field name   |          field description          | field type | must |                 remarks                  |
++===============+=====================================+============+======+==========================================+
+| space_name    | space name                          | string     | yes  |                                          |
++---------------+-------------------------------------+------------+------+------------------------------------------+
+| db_name       | database name                       | string     | yes  |                                          |
++---------------+-------------------------------------+------------+------+------------------------------------------+
+| doc_num       | space document num                  | uint64     | yes  |                                          |
++---------------+-------------------------------------+------------+------+------------------------------------------+
+| partition_num | partition num                       | int        | yes  |                                          |
++---------------+-------------------------------------+------------+------+------------------------------------------+
+| replica_num   | replica num                         | int        | yes  |                                          |
++---------------+-------------------------------------+------------+------+------------------------------------------+
+| schema        | space struct schema                 | json       | yes  |                                          |
++---------------+-------------------------------------+------------+------+------------------------------------------+
+| status        | space status                        | string     | yes  | red means: There is a problem with space |
++---------------+-------------------------------------+------------+------+------------------------------------------+
+| partitions    | space partitions detail information | string     | yes  |                                          |
++---------------+-------------------------------------+------------+------+------------------------------------------+
+| errors        | space error information             | string     | no   |                                          |
++---------------+-------------------------------------+------------+------+------------------------------------------+
+
+return format:
+::
+  {
+      "code": 200,
+      "msg": "success",
+      "data": {
+          "space_name": "ts_space",
+          "db_name": "ts_db",
+          "doc_num": 0,
+          "partition_num": 1,
+          "replica_num": 1,
+          "schema": {
+              "fields": {
+                  "field_string": {
+                      "type": "keyword"
+                  },
+                  "field_int": {
+                      "type": "integer"
+                  },
+                  "field_float": {
+                      "type": "float",
+                      "index": true
+                  },
+                  "field_string_array": {
+                      "type": "string",
+                      "array": true,
+                      "index": true
+                  },
+                  "field_int_index": {
+                      "type": "integer",
+                      "index": true
+                  },
+                  "field_vector": {
+                      "type": "vector",
+                      "dimension": 128
+                  },
+                  "field_vector_normal": {
+                      "type": "vector",
+                      "dimension": 256,
+                      "format": "normalization"
+                  }
+              },
+              "index": {
+                  "index_name": "gamma",
+                  "index_type": "HNSW",
+                  "index_params": {
+                      "metric_type": "InnerProduct",
+                      "ncentroids": 2048,
+                      "nsubvector": 32,
+                      "nlinks": 32,
+                      "efConstruction": 40,
+                      "nprobe": 80,
+                      "efSearch": 64,
+                      "training_threshold": 70000
+                  }
+              }
+          },
+          "status": "green",
+          "partitions": [
+              {
+                  "pid": 4,
+                  "replica_num": 1,
+                  "status": 4,
+                  "color": "green",
+                  "ip": "11.3.240.73",
+                  "node_id": 1,
+                  "index_status": 0,
+                  "index_num": 0,
+                  "max_docid": -1
+              }
+          ],
+      }
+  }
+
+more information:
+::
+  
+  curl -XGET http://master_server/dbs/$db_name/spaces/$space_name?detail=true
+
+return format:
+::
+
+  {
+      "code": 200,
+      "msg": "success",
+      "data": {
+          "space_name": "ts_space",
+          "db_name": "ts_db",
+          "doc_num": 0,
+          "partition_num": 1,
+          "replica_num": 1,
+          "schema": {
+              "fields": {
+                  "field_string": {
+                      "type": "keyword"
+                  },
+                  "field_int": {
+                      "type": "integer"
+                  },
+                  "field_float": {
+                      "type": "float",
+                      "index": true
+                  },
+                  "field_string_array": {
+                      "type": "string",
+                      "array": true,
+                      "index": true
+                  },
+                  "field_int_index": {
+                      "type": "integer",
+                      "index": true
+                  },
+                  "field_vector": {
+                      "type": "vector",
+                      "dimension": 128
+                  },
+                  "field_vector_normal": {
+                      "type": "vector",
+                      "dimension": 256,
+                      "format": "normalization"
+                  }
+              },
+              "index": {
+                  "index_name": "gamma",
+                  "index_type": "HNSW",
+                  "index_params": {
+                      "metric_type": "InnerProduct",
+                      "ncentroids": 2048,
+                      "nsubvector": 32,
+                      "nlinks": 32,
+                      "efConstruction": 40,
+                      "nprobe": 80,
+                      "efSearch": 64,
+                      "training_threshold": 70000
+                  }
+              }
+          },
+          "status": "green",
+          "partitions": [
+              {
+                  "pid": 137,
+                  "replica_num": 1,
+                  "path": "/home/zc/program/vearch/deploy/export/Data/datas/",
+                  "status": 4,
+                  "color": "green",
+                  "ip": "11.3.240.73",
+                  "node_id": 1,
+                  "raft_status": {
+                      "ID": 137,
+                      "NodeID": 1,
+                      "Leader": 1,
+                      "Term": 1,
+                      "Index": 1,
+                      "Commit": 1,
+                      "Applied": 1,
+                      "Vote": 1,
+                      "PendQueue": 0,
+                      "RecvQueue": 0,
+                      "AppQueue": 0,
+                      "Stopped": false,
+                      "RestoringSnapshot": false,
+                      "State": "StateLeader",
+                      "Replicas": {
+                          "1": {
+                              "Match": 1,
+                              "Commit": 1,
+                              "Next": 2,
+                              "State": "ReplicaStateProbe",
+                              "Snapshoting": false,
+                              "Paused": false,
+                              "Active": true,
+                              "LastActive": "2024-03-18T09: 59: 17.095112556+08: 00",
+                              "Inflight": 0
+                          }
+                      }
+                  },
+                  "index_status": 0,
+                  "index_num": 0,
+                  "max_docid": -1
+              }
+          ]
+      }
+  }
+
 Delete Space
 ------------
 ::

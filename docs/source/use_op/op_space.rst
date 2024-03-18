@@ -1,7 +1,7 @@
 Space Operation
 =================
 
-http://master_server is the master service, $db_name is the name of the created database, $space_name is the name of the created tablespace.
+http://master_server is the master service, $db_name is the name of the created database, $space_name is the name of the created space.
 
 Create Space
 ------------
@@ -17,7 +17,7 @@ Create Space
           "index_name": "gamma",
           "index_type": "HNSW"
       },
-      "properties": {
+      "fields": {
           "field1": {
               "type": "keyword"
           },
@@ -235,7 +235,7 @@ FLAT:
   
  Note: 1. The vector storage method only supports MemoryOnly
 
-properties config:
+fields config:
 
 1. There are four types (that is, the value of type) supported by the field defined by the table space structure: keyword, integer, float, vector (keyword is equivalent to string).
 
@@ -282,7 +282,8 @@ View Space
   
   curl -XGET http://master_server/dbs/$db_name/spaces/$space_name
 
-return data
+return data:
+
 +---------------+-------------------------------------+------------+------+------------------------------------------+
 |  field name   |          field description          | field type | must |                 remarks                  |
 +===============+=====================================+============+======+==========================================+

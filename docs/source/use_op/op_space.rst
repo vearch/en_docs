@@ -370,7 +370,7 @@ return format:
                   "replica_num": 1,
                   "status": 4,
                   "color": "green",
-                  "ip": "11.3.240.73",
+                  "ip": "127.0.0.1",
                   "node_id": 1,
                   "index_status": 0,
                   "index_num": 0,
@@ -451,7 +451,7 @@ return format:
                   "path": "/home/zc/program/vearch/deploy/export/Data/datas/",
                   "status": 4,
                   "color": "green",
-                  "ip": "11.3.240.73",
+                  "ip": "127.0.0.1",
                   "node_id": 1,
                   "raft_status": {
                       "ID": 137,

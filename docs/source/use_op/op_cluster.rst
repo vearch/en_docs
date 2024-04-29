@@ -1,10 +1,10 @@
 Cluster Monitoring
-=================
+==================================
 
 http://master_server is the master service.
 
 Cluster Status
---------
+------------------------
 
 ::
 
@@ -12,7 +12,7 @@ Cluster Status
 
 
 Health Status
---------
+------------------------
 
 ::
 
@@ -20,21 +20,21 @@ Health Status
 
 
 Server Status
---------
+------------------------
 
 ::
 
    curl -XGET http://master_server/servers
 
 Partition Status
---------
+------------------------
 
 ::
 
    curl -XGET http://master_server/partitions
 
 Clean lock
---------
+------------------------
 
 ::
 
@@ -43,7 +43,7 @@ Clean lock
 The cluster will be locked when creating a table. If the service is abnormal during this process, the lock will not be released and will need to be manually cleared before a new table can be created.
 
 Replica expansion and contraction
---------
+------------------------------------------------
 
 ::
 

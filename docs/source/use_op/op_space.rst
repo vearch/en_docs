@@ -1,69 +1,69 @@
 Space Operation
-=================
+==================================
 
 http://master_server is the master service, $db_name is the name of the created database, $space_name is the name of the created space.
 
 Create Space
-------------
+------------------------
 
 ::
 
-curl -XPOST -H "content-type: application/json" -d'
-{
-    "name": "space1",
-    "partition_num": 1,
-    "replica_num": 3,
-    "fields": [
-        {
-            "name": "field_string",
-            "type": "string"
-        },
-        {
-            "name": "field_int",
-            "type": "integer"
-        },
-        {
-            "name": "field_float",
-            "type": "float",
-            "index": {
+    curl -XPOST -H "content-type: application/json" -d'
+    {
+        "name": "space1",
+        "partition_num": 1,
+        "replica_num": 3,
+        "fields": [
+            {
+                "name": "field_string",
+                "type": "string"
+            },
+            {
+                "name": "field_int",
+                "type": "integer"
+            },
+            {
                 "name": "field_float",
-                "type": "SCALAR",
-            },
-        },
-        {
-            "name": "field_string_array",
-            "type": "stringArray",
-            "index": {
-                "name": "field_string_array",
-                "type": "SCALAR",
-            },
-        },
-        {
-            "name": "field_int_index",
-            "type": "integer",
-            "index": {
-                "name": "field_int_index",
-                "type": "SCALAR",
-            },
-        },
-        {
-            "name": "field_vector",
-            "type": "vector",
-            "dimension": 128,
-            "index": {
-                "name": "gamma",
-                "type": "IVFPQ",
-                "params": {
-                    "metric_type": "InnerProduct",
-                    "ncentroids": 2048,
-                    "nlinks": 32,
-                    "efConstruction": 40,
+                "type": "float",
+                "index": {
+                    "name": "field_float",
+                    "type": "SCALAR",
                 },
             },
-        }
-    ]
-}
-' http://master_server/dbs/$db_name/spaces
+            {
+                "name": "field_string_array",
+                "type": "stringArray",
+                "index": {
+                    "name": "field_string_array",
+                    "type": "SCALAR",
+                },
+            },
+            {
+                "name": "field_int_index",
+                "type": "integer",
+                "index": {
+                    "name": "field_int_index",
+                    "type": "SCALAR",
+                },
+            },
+            {
+                "name": "field_vector",
+                "type": "vector",
+                "dimension": 128,
+                "index": {
+                    "name": "gamma",
+                    "type": "IVFPQ",
+                    "params": {
+                        "metric_type": "InnerProduct",
+                        "ncentroids": 2048,
+                        "nlinks": 32,
+                        "efConstruction": 40,
+                    },
+                },
+            }
+        ]
+    }
+    ' http://master_server/dbs/$db_name/spaces
 
 
 Parameter description:
@@ -128,7 +128,7 @@ IVFPQ:
 +--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 ::
- 
+
   "index_type": "IVFPQ",
   "index_params": {
       "metric_type": "InnerProduct",
@@ -217,7 +217,7 @@ IVFFLAT:
 +--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 ::
- 
+
   "index_type": "IVFFLAT",
   "index_params": {
       "metric_type": "InnerProduct", 
@@ -239,7 +239,7 @@ BINARYIVF:
 +--------------------+------------------------------------------------------+------------+---------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 ::
- 
+
   "index_type": "BINARYIVF",
   "index_params": {
       "ncentroids": 256
@@ -256,7 +256,7 @@ FLAT:
 +-------------+-------------------+------------+------+-------------------+
 
 ::
- 
+
   "index_type": "FLAT",
   "index_params": {
       "metric_type": "InnerProduct"
@@ -306,12 +306,13 @@ Scalar Index
 Gamma engine supports scalar index, provides the filtering function for scalar data, the opening method refers to the 2nd and 3rd in the "fields config", and the retrieval method refers to the "filter json structure elucidation" in the "Search"
 
 View Space
-----------
+--------------------
 ::
-  
+
   curl -XGET http://master_server/dbs/$db_name/spaces/$space_name
 
 返回数据详细格式：
+
 +----------+----------------+--------+--------------+------+
 | 字段标识 |    字段含义    |  类型  | 是否一定返回 | 备注 |
 +==========+================+========+==============+======+
@@ -348,6 +349,7 @@ return data:
 
 return format:
 ::
+
     {
         "code": 0,
         "data": {
@@ -446,12 +448,12 @@ return format:
         }
     }
 
-more information:
+more information
 ::
-  
+
   curl -XGET http://master_server/dbs/$db_name/spaces/$space_name?detail=true
 
-return format:
+return format
 ::
 
     {
@@ -643,7 +645,7 @@ return format:
     }
 
 Delete Space
-------------
+------------------------
 ::
  
   curl -XDELETE http://master_server/dbs/$db_name/spaces/$space_name

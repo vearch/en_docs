@@ -12,7 +12,7 @@ Vearch System Introduction
       :maxdepth: 2
    :caption: Operational Manual
 
-   use_op/cluster_status.rst
+   use_op/op_cluster.rst
    use_op/op_db.rst
    use_op/op_space.rst
    use_op/op_doc.rst

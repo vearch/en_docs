@@ -31,31 +31,25 @@ Do not specify unique identification id when inserting
             "field_float": 90399,
             "field_double": 90399,
             "field_string": "111399",
-            "field_vector": {
-                "feature": [...]
-            }
+            "field_vector": [...]
         }, {
             "field_int": 45085,
             "field_float": 45085,
             "field_double": 45085,
             "field_string": "106085",
-            "field_vector": {
-                "feature": [...]
-            }
+            "field_vector":  [...]
         }, {
             "field_int": 52968,
             "field_float": 52968,
             "field_double": 52968,
             "field_string": "113968",
-            "field_vector": {
-                "feature": [...]
-            }
+            "field_vector":  [...]
         }]
     }
     ' http://router_server/document/upsert
 
 
-field_vector is feature field. All field names, value types, and table structures are consistent
+field_vector is vector field. All field names, value types, and table structures are consistent
 
 Specify unique identifier when inserting
 ::
@@ -70,27 +64,21 @@ Specify unique identifier when inserting
             "field_float": 90399,
             "field_double": 90399,
             "field_string": "111399",
-            "field_vector": {
-                "feature": [...]
-            }
+            "field_vector":  [...]
         }, {
             "_id": "1000001",
             "field_int": 45085,
             "field_float": 45085,
             "field_double": 45085,
             "field_string": "106085",
-            "field_vector": {
-                "feature": [...]
-            }
+            "field_vector": [...]
         }, {
             "_id": "1000002",
             "field_int": 52968,
             "field_float": 52968,
             "field_double": 52968,
             "field_string": "113968",
-            "field_vector": {
-                "feature": [...]
-            }
+            "field_vector": [...]
         }]
     }
     ' http://router_server/document/upsert
@@ -101,20 +89,20 @@ The format of the return value of the upsert interface is as follows
     {
         "code": 0,
         "msg": "success",
-        "total": 3,
-        "document_ids": [{
-            "_id": "-526059949411103803",
-            "status": 200,
-            "error": "success"
-        }, {
-            "_id": "1287805132970120733",
-            "status": 200,
-            "error": "success"
-        }, {
-            "_id": "-1948185285365684656",
-            "status": 200,
-            "error": "success"
-        }]
+        "data": {
+            "total": 3,
+            "document_ids": [
+                {
+                    "_id": "-526059949411103803"
+                },
+                {
+                    "_id": "1287805132970120733"
+                },
+                {
+                    "_id": "-1948185285365684656"
+                }
+            ]
+        }
     }
 
 total identifies the number of successful insertions, and document_ids returns the generated _id and insertion result information.
@@ -126,8 +114,78 @@ The /document/query interface is used to accurately search for data that exactly
 Two methods are supported: one is to obtain documents directly through primary keys, and the other is to obtain corresponding documents based on filter conditions.
 
 If partition_id is set, get the corresponding document on the specified data partition. At this time, the meaning of document_id is the document number on the partition.
-document_id can be [0, max_docid] of the specified partition, and max_docid and partition information can be obtained through the cluster/health interface.
+document_id can be [0, max_docid] of the specified partition, and max_docid and partition information can be obtained through the http://master_server/dbs/$db_name/spaces/$space_name interface.
 Complete data for the cluster can be obtained this way.
+
+query Parameter Description:
+
++--------------+--------------+------+-----------------------------------------------------------------------------------------------------------------+
+|  field name  |  field type  | must |                                                     remarks                                                     |
++==============+==============+======+=================================================================================================================+
+| document_ids | string array | 否   | Query conditions, filter and document_ids must contain one item                                                 |
++--------------+--------------+------+-----------------------------------------------------------------------------------------------------------------+
+| partition_id | int          | 否   | Specify which partition to obtain data from, used in combination with document_ids                              |
++--------------+--------------+------+-----------------------------------------------------------------------------------------------------------------+
+| filters      | json         | 否   | Query condition filtering: numerical filtering + label filtering, filter and document_ids must contain one item |
++--------------+--------------+------+-----------------------------------------------------------------------------------------------------------------+
+| fields       | string array | 否   | Specify which fields to return. By default, all fields except vector fields are returned.                       |
++--------------+--------------+------+-----------------------------------------------------------------------------------------------------------------+
+| vector_value | bool         | 否   | Defaults to false, whether to return a vector                                                                   |
++--------------+--------------+------+-----------------------------------------------------------------------------------------------------------------+
+| limit        | int          | 否   | Specify the number of returned results, the default is 50                                                       |
++--------------+--------------+------+-----------------------------------------------------------------------------------------------------------------+
+
+- filters json format description:
+::
+
+    "filters": [
+        "operator": "AND",
+        "conditions": [
+            {
+                "field": "field_int",
+                "operator": ">=",
+                "value": 1
+            },
+            {
+                "field": "field_int",
+                "operator": "<=",
+                "value": 3
+            },
+            {
+                "field": "field_string",
+                "operator": "IN",
+                "value": ["aaa", "bbb"]
+            }
+        ]
+    ]
+
+
+filters format description:
+
++------------+------------+------+----------------------+
+| field name | field type | must |       remarks        |
++============+============+======+======================+
+| operator   | string     | true | only support AND now |
++------------+------------+------+----------------------+
+| conditions | json array | true |                      |
++------------+------------+------+----------------------+
+
+(1) Filter conditions support multiple conditions, and there is an intersection relationship between multiple conditions, that is, the outermost operator currently supports AND.
+
+conditions format description:
+
++------------+------------+------+--------------------------+
+| field name | field type | must |         remarks          |
++============+============+======+==========================+
+| field      | string     | true |                          |
++------------+------------+------+--------------------------+
+| operator   | string     | true | support >, >=, <, <=, IN |
++------------+------------+------+--------------------------+
+| value      | json       | true |                          |
++------------+------------+------+--------------------------+
+
+(2) conditions specific filtering conditions, currently supports two types of field type filtering, numeric type and string type (including string array type)
+Numeric type operators: >, >=, <, <=; String operator type IN
 
 Find data based on unique id identifier
 ::
@@ -136,9 +194,7 @@ Find data based on unique id identifier
     {
         "db_name": "ts_db",
         "space_name": "ts_space",
-        "query": {
-            "document_ids": ["6560995651113580768", "-5621139761924822824", "-104688682735192253"]
-        },
+        "document_ids": ["6560995651113580768", "-5621139761924822824", "-104688682735192253"]
         "vector_value": true
     }
     ' http://router_server/document/query
@@ -150,14 +206,8 @@ Get the corresponding document on the specified data partition. At this time, do
     {
         "db_name": "ts_db",
         "space_name": "ts_space",
-        "query": {
-            "document_ids": [
-            "10000",
-            "10001",
-            "10002"
-            ],
-            "partition_id": "1"
-        },
+        "document_ids": ["0", "1", "2"],
+        "partition_id": "1",
         "vector_value": true
     }
     ' http://router_server/document/query
@@ -169,26 +219,21 @@ Find based on Filter expression of custom scalar field
     {
         "db_name": "ts_db",
         "space_name": "ts_space",
-        "query": {
-            "filter": [
-            {
-                "range": {
-                "field_int": {
-                    "gte": 1000,
-                    "lte": 100000
+        "filters": [
+            "operator": "AND",
+            "conditions": [
+                {
+                    "field": "field_int",
+                    "operator": >=,
+                    "value": 1
+                },
+                {
+                    "field": "field_int",
+                    "operator": <=,
+                    "value": 3
                 }
-                }
-            },
-            {
-                "term": {
-                "field_string": [
-                    "322"
-                ]
-                }
-            }
             ]
-        },
-        "vector_value": false
+        ]
     }
     ' http://router_server/document/query
 
@@ -198,254 +243,75 @@ Query interface return format
     {
         "code": 0,
         "msg": "success",
-        "total": 3,
-        "documents": [{
-            "_id": "6560995651113580768",
-            "_source": {
+        "data": {
+            "total": 3,
+            "documents": [{
+                "_id": "6560995651113580768",
                 "field_double": 202558,
                 "field_float": 102558,
                 "field_int": 1558,
                 "field_string": "1558"
-            }
-        }, {
-            "_id": "-5621139761924822824",
-            "_source": {
+            }, {
+                "_id": "-5621139761924822824",
                 "field_double": 210887,
                 "field_float": 110887,
                 "field_int": 89887,
                 "field_string": "89887"
-            }
-        }, {
-            "_id": "-104688682735192253",
-            "_source": {
+            }, {
+                "_id": "-104688682735192253",
                 "field_double": 207588,
                 "field_float": 107588,
                 "field_int": 46588,
                 "field_string": "46588"
-            }
-        }]
-    }
-
-Parameter Description:
-
-+--------------+------------+-------+----------------------------------------------------------------------------------------+
-|  field name  | field type | must  |                                        remarks                                         |
-+==============+============+=======+========================================================================================+
-| document_ids | json array | false | filter or document_ids must have one                                                   |
-+--------------+------------+-------+----------------------------------------------------------------------------------------+
-| partition_id | json array | false | specify get document on which partition                                                |
-+--------------+------------+-------+----------------------------------------------------------------------------------------+
-| filter       | json array | false | query criteria filtering: numeric filtering + label filtering                          |
-+--------------+------------+-------+----------------------------------------------------------------------------------------+
-| fields       | json array | false | Specify which fields to return. By default, only the unique id and score are returned. |
-+--------------+------------+-------+----------------------------------------------------------------------------------------+
-| vector_value | bool       | false | default false                                                                          |
-+--------------+------------+-------+----------------------------------------------------------------------------------------+
-| size         | int        | false | Specify the number of returned results, the default is 50                              |
-+--------------+------------+-------+----------------------------------------------------------------------------------------+
-
-document/search
---------
-Supports similarity retrieval based on specified ID or vector value, and returns the specified Top K most similar Documents.
-
-Supports similarity retrieval based on the primary key id (Document ID) or vector value, together with the Filter expression of a custom scalar field.
-
-document_ids passes in the unique record id. The background processing first queries the characteristics of the record based on the unique id, and then uses the characteristics to perform similar queries and returns matching results.
-
-Search based on document_ids
-::
-
-    curl -H "content-type: application/json" -XPOST -d'
-    {
-        "query": {
-            "document_ids": [
-                "3646866681750952826"
-            ],
-            "filter": [
-            {
-                "range": {
-                    "field_int": {
-                        "gte": 1000,
-                        "lte": 100000
-                    }
-                }
-            }
-            ]
-        },
-        "index_params": {
-            "metric_type": "L2"
-        },
-        "size": 3,
-        "db_name": "ts_db",
-        "space_name": "ts_space"
-    }
-    ' http://router_server/document/search
-
-Search based on vector
-Supports single or multiple queries. Multiple queries can splice the features of multiple queries into a feature array (such as defining 128-dimensional features and querying 10 in batches.
-Then 10 128-dimensional features are spliced into a 1280-dimensional feature array in order and assigned to the feature field),
-After receiving the request, the background splits it according to the characteristic field dimensions defined by the table structure, and returns the matching results in order.
-::
-
-    curl -H "content-type: application/json" -XPOST -d'
-    {
-        "query": {
-            "vector": [
-            {
-                "field": "field_vector",
-                "feature": [
-                    "..."
-                ]
-            }
-            ],
-            "filter": [
-            {
-                "range": {
-                    "field_int": {
-                        "gte": 1000,
-                        "lte": 100000
-                    }
-                }
-            }
-            ]
-        },
-        "index_params": {
-            "metric_type": "L2"
-        },
-        "size": 3,
-        "db_name": "ts_db",
-        "space_name": "ts_space"
-    }
-    ' http://router_server/document/search
-
-
-multi-vector search
-The table space supports multiple feature fields when defined, so the query can support the features of the corresponding data.
-
-Take two vectors for each record as an example: define table structure fields
-::
-
-    {
-        "field1": {
-            "type": "vector",
-            "dimension": 128
-        },
-        "field2": {
-            "type": "vector",
-            "dimension": 256
-        } 
-    }
-
-
-field1 and field2 are both vector fields. When querying, the search conditions can specify two vectors:
-::
-
-    {
-        "query": {
-            "vector": [{
-                "field": "filed1",
-                "feature": [0.1, 0.2, 0.3, 0.4, 0.5],
-                "min_score": 0.9
-            },
-            {
-                "field": "filed2",
-                "feature": [0.8, 0.9],
-                "min_score": 0.8
             }]
         }
     }
 
+document/search
+--------
+Supports similarity retrieval based on  vector value, together with the Filter expression of a custom scalar field， and returns the specified Top K most similar Documents.
 
-The intersection of field1 and field2 filtering results is obtained. Other parameters and request addresses are the same as ordinary queries.
+Parameter Description:
 
-search interface return format
-::
-
-    {
-        "code": 0,
-        "msg": "success",
-        "documents": [
-            [{
-                "_id": "6979025510302030694",
-                "_score": 16.55717658996582,
-                "_source": {
-                    "field_double": 207598,
-                    "field_float": 107598,
-                    "field_int": 6598,
-                    "field_string": "6598"
-                }
-            }, {
-                "_id": "-104688682735192253",
-                "_score": 17.663991928100586,
-                "_source": {
-                    "field_double": 207588,
-                    "field_float": 107588,
-                    "field_int": 46588,
-                    "field_string": "46588"
-                }
-            }, {
-                "_id": "8549822044854277588",
-                "_score": 17.88829803466797,
-                "_source": {
-                    "field_double": 220413,
-                    "field_float": 120413,
-                    "field_int": 99413,
-                    "field_string": "99413"
-                }
-            }]
-        ]
-    }
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
+|   field name    | field type | must  |                                                                remarks                                                                |
++=================+============+=======+=======================================================================================================================================+
+| vectors         | json array | true  | embedding value                                                                                                                       |
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
+| filters         | json array | false | query criteria filtering: numeric filtering + label filtering                                                                         |
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
+| fields          | json array | false | Specify which fields to return. By default, only the unique id and score are returned.                                                |
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
+| is_brute_search | int        | false | default 0                                                                                                                             |
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
+| vector_value    | bool       | false | default false                                                                                                                         |
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
+| load_balance    | string     | false | Load balancing algorithm, random by default                                                                                           |
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
+| limit           | int        | false | Specify the number of returned results, the default is 50                                                                             |
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
+| ranker          | json       | false | For further processing of multi-vector results, currently only WeightedRanker is supported, which specifies the weight of similarity. |
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
+| index_params    | json       | false | Specify parameters for model calculation                                                                                              |
++-----------------+------------+-------+---------------------------------------------------------------------------------------------------------------------------------------+
 
 The overall json structure of the query parameters is as follows:
 ::
 
     {
-        "query": {
-            "vector": [],
-            "filter": []
-        },
+        "vectors": [],
+        "filters": []
         "index_params": {"nprobe": 20},
         "fields": ["field1", "field2"],
         "is_brute_search": 0,
-        "online_log_level": "debug",
-        "quick": false,
         "vector_value": false,
         "load_balance": "leader",
-        "l2_sqrt": false,
-        "size": 10
+        "limit": 10，
+        "ranker": {
+            "type": "WeightedRanker",
+            "params": [0.5, 0.5],
+        }
     }
-
-
-Parameter Description:
-
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-|    field name    | field type | must  |                                         remarks                                         |
-+==================+============+=======+=========================================================================================+
-| vector           | json array | false | query feature, vector or document_ids must have one                                     |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| document_ids     | json array | false | query feature, vector or document_ids must have one                                     |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| filter           | json array | false | query criteria filtering: numeric filtering + label filtering                           |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| fields           | json array | false | Specify which fields to return. By default, only the unique id and score are returned.  |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| is_brute_search  | int        | false | default 0                                                                               |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| online_log_level | string     | false | The value is debug, which turns on printing debugging logs.                             |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| quick            | bool       | false | default false                                                                           |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| vector_value     | bool       | false | default false                                                                           |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| load_balance     | string     | false | Load balancing algorithm, random by default                                             |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| l2_sqrt          | bool       | false | The default is false, and the root sign is used for the l2 distance calculation result. |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| sort             | json array | false | Specify field sorting (only for matching results, not the whole)                        |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-| size             | int        | false | Specify the number of returned results, the default is 50                               |
-+------------------+------------+-------+-----------------------------------------------------------------------------------------+
-
 
 The index_params parameter specifies the parameters for model calculation. Different models support different parameters, as shown in the following example:
 
@@ -468,6 +334,7 @@ IVFPQ:
         "nprobe": 80,
         "metric_type": "L2" 
     }
+    When recall_num is set, the original vector will be used for calculation rearrangement (fine sorting)
 
 GPU:
 ::
@@ -500,18 +367,17 @@ FLAT:
         "metric_type": "L2"
     }
 
-- vector json structure elucidation:
+- vectors json structure elucidation:
 ::
 
-  "vector": [{
-            "field": "field_name",
-            "feature": [0.1, 0.2, 0.3, 0.4, 0.5],
-            "min_score": 0.9,
-            "boost": 0.5
-         }]
+    "vectors": [{
+        "field": "field_name",
+        "feature": [0.1, 0.2, 0.3, 0.4, 0.5],
+        "min_score": 0.9
+    }]
 
 
-(1) vector: Support multiple (including multiple feature fields when defining table structure correspondingly).
+(1) vectors: Support multiple (including multiple feature fields when defining table structure correspondingly).
 
 (2) field: Specifies the name of the feature field when the table is created.
 
@@ -519,58 +385,138 @@ FLAT:
 
 (4) min_score: Specify the minimum score of the returned result, min_score can specify the minimum score of the returned result, and max_score can specify the maximum score. For example, set "min_score": 0.8, "max_score": 0.95 to filter the result of 0.8 <= score <= 0.95. At the same time, another way of score filtering is to use the combination of "symbol": ">=", "value": 0.9. The value types supported by symbol include: >, >=, < and <= four kinds, and the values of value.
 
-(5) boost: Specify the weight of similarity. For example, if the similarity score of two vectors is 0.7 and boost is set to 0.5, the returned result will multiply the score 0.7 * 0.5, which is 0.35.Does not take effect when using a single vector.
-
 - filter json structure elucidation:
-::
 
-    "filter": [
-        {
-            "range": {
-                "field_name": {
-                    "gte": 160,
-                    "lte": 180
-                }
-            }
-        },
-        {
-            "term": {
-                "field1": ["100", "200", "300"],
-                "operator": "or"
-            }
-        },
-        {
-            "term": {
-                "field2": ["a", "b", "c"],
-                "operator": "and"
-            }
-        },
-        {
-            "term": {
-                "field3": ["A1", "B2"],
-                "operator": "not"
-            } 
-        }
-    ]
-
-(1) filter: Multiple conditions are supported. Multiple conditions are intersecting.
-
-(2) range: Specify to use the numeric field integer / float filtering, the file name is the numeric field name, gte and lte specify the range, lte is less than or equal to, gte is greater than or equal to, if equivalent filtering is used, lte and gte settings are the same value. The above example shows that the query field_name field is greater than or equal to 160 but less than or equal to 180.
-
-(3) term: With label filtering, field_name is a defined label field, which allows multiple value filtering. You can intersect "operator": "or", merge: "operator": "and". The above example indicates that the query field name  segment value is "100", "200" or "300".
+Refer to the description of filter json in the query interface section.
 
 - is_brute_search: Specify the query type. 0 means to use index if the feature has been created, and violent search if it has not been created; - 1 means to use index only for search, and 1 means not to use index only for violent search. The default value is 0. 
 
-- quick: By default, the PQ recall vector is calculated and refined in the search results. In order to speed up the processing speed of the server to true, only recall can be specified, and no calculation and refined. 
-
 - vector_value: In order to reduce the network overhead, the search results contain only scalar information fields without feature data by default, and set to true to specify that the returned results contain the original feature data.
 
-- online_log_level: Set "debug" to specify to print more detailed logs on the server, which is convenient for troubleshooting in the development and test phase. 
-
-- size: Specifies the maximum number of results to return. use the size value specified in the URL first.
+- limit: Specifies the maximum number of results to return. use the limit value specified in the URL first.
 
 - load_balance: leader，random，no_leader，least_connection，default random。
 
+Search based on vector
+Supports single or multiple queries. Multiple queries can splice the features of multiple queries into a feature array (such as defining 128-dimensional features and querying 10 in batches.
+Then 10 128-dimensional features are spliced into a 1280-dimensional feature array in order and assigned to the feature field),
+After receiving the request, the background splits it according to the characteristic field dimensions defined by the table structure, and returns the matching results in order.
+::
+
+    curl -H "content-type: application/json" -XPOST -d'
+    {
+        "vectors": [
+            {
+                "field": "field_vector",
+                "feature": [
+                    "..."
+                ]
+            }
+        ],
+        "filters": [
+            "operator": "AND",
+            "conditions": [
+                {
+                    "field": "field_int",
+                    "operator": ">=",
+                    "value": 1
+                },
+                {
+                    "field": "field_int",
+                    "operator": "<=",
+                    "value": 3
+                },
+                {
+                    "field": "field_string",
+                    "operator": "IN",
+                    "value": [
+                        "aaa",
+                        "bbb"
+                    ]
+                }
+            ]
+        ],
+        "index_params": {
+            "metric_type": "L2"
+        },
+        "limit": 3,
+        "db_name": "ts_db",
+        "space_name": "ts_space"
+    }
+    ' http://router_server/document/search
+
+
+multi-vector search
+The table space supports multiple feature fields when defined, so the query can support the features of the corresponding data.
+
+Take two vectors for each record as an example: define table structure fields
+::
+
+    {
+        "field_vector1": {
+            "type": "vector",
+            "dimension": 128
+        },
+        "field_vector2": {
+            "type": "vector",
+            "dimension": 256
+        } 
+    }
+
+
+field1 and field2 are both vector fields. When querying, the search conditions can specify two vectors:
+::
+
+    {
+        "vectors": [{
+            "field": "field_vector1",
+            "feature": [...]
+        },
+        {
+            "field": "field_vector2",
+            "feature": [...]
+        }],
+        "ranker": {
+            "type": "WeightedRanker",
+            "params": [0.5, 0.5]
+        }
+    }
+
+The intersection of field1 and field2 filtering results is obtained. Other parameters and request addresses are the same as ordinary queries.
+
+search interface return format
+::
+
+    {
+        "code": 0,
+        "msg": "success",
+        "data": {
+            "documents": [
+                [{
+                    "_id": "6979025510302030694",
+                    "_score": 16.55717658996582,
+                    "field_double": 207598,
+                    "field_float": 107598,
+                    "field_int": 6598,
+                    "field_string": "6598",
+                }, {
+                    "_id": "-104688682735192253",
+                    "_score": 17.663991928100586,
+                    "field_double": 207588,
+                    "field_float": 107588,
+                    "field_int": 46588,
+                    "field_string": "46588"
+                }, {
+                    "_id": "8549822044854277588",
+                    "_score": 17.88829803466797,
+                    "field_double": 220413,
+                    "field_float": 120413,
+                    "field_int": 99413,
+                    "field_string": "99413"
+                }]
+            ]        
+        }
+    }
 
 document/delete
 --------
@@ -583,9 +529,7 @@ Delete specified document_ids
     {
         "db_name": "ts_db",
         "space_name": "ts_space",
-        "query": {
-            "document_ids": ["4501743250723073467", "616335952940335471", "-2422965400649882823"]
-        }
+        "document_ids": ["4501743250723073467", "616335952940335471", "-2422965400649882823"]
     }
     ' http://router_server/document/delete
   
@@ -596,29 +540,24 @@ Delete documents that meet the filter conditions. size specifies the number of i
     {
         "db_name": "ts_db",
         "space_name": "ts_space",
-        "query": {
-            "filter": [
-            {
-                "range": {
-                "field_int": {
-                    "gte": 1000,
-                    "lte": 100000
+        "filters": [
+            "operator": "AND",
+            "conditions": [
+                {
+                    "field": "field_int",
+                    "operator": >=,
+                    "value": 1
+                },
+                {
+                    "field": "field_int",
+                    "operator": <=,
+                    "value": 3
                 }
-                }
-            },
-            {
-                "term": {
-                "field_string": [
-                    "322"
-                ]
-                }
-            }
             ]
-        },
-        "size": 3
+        ]
+        "limit": 3
     }
     ' http://router_server/document/delete
-
 
 Delete interface return format
 ::
@@ -626,7 +565,8 @@ Delete interface return format
     {
         "code": 0,
         "msg": "success",
-        "total": 3,
-        "document_ids": ["4501743250723073467", "616335952940335471", "-2422965400649882823"]
+        "data": {
+            "total": 3,
+            "document_ids": ["4501743250723073467", "616335952940335471", "-2422965400649882823"]
+        }
     }
-

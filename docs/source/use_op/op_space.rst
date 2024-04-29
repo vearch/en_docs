@@ -7,48 +7,63 @@ Create Space
 ------------
 
 ::
-   
-  curl -XPUT -H "content-type: application/json" -d'
-  {
-      "name": "space1",
-      "partition_num": 1,
-      "replica_num": 1,
-      "index": {
-          "index_name": "gamma",
-          "index_type": "HNSW"
-      },
-      "fields": {
-          "field1": {
-              "type": "keyword"
-          },
-          "field2": {
-              "type": "integer"
-          },
-          "field3": {
-              "type": "float",
-              "index": true
-          },
-          "field4": {
-              "type": "string",
-              "array": true,
-              "index": true
-          },
-          "field5": {
-              "type": "integer",
-              "index": true
-          },
-          "field6": {
-              "type": "vector",
-              "dimension": 128
-          },
-          "field7": {
-              "type": "vector",
-              "dimension": 256,
-              "format": "normalization"
-          }
-      }
-  }
-  ' http://master_server/dbs/$db_name/spaces
+
+curl -XPOST -H "content-type: application/json" -d'
+{
+    "name": "space1",
+    "partition_num": 1,
+    "replica_num": 3,
+    "fields": [
+        {
+            "name": "field_string",
+            "type": "string"
+        },
+        {
+            "name": "field_int",
+            "type": "integer"
+        },
+        {
+            "name": "field_float",
+            "type": "float",
+            "index": {
+                "name": "field_float",
+                "type": "SCALAR",
+            },
+        },
+        {
+            "name": "field_string_array",
+            "type": "stringArray",
+            "index": {
+                "name": "field_string_array",
+                "type": "SCALAR",
+            },
+        },
+        {
+            "name": "field_int_index",
+            "type": "integer",
+            "index": {
+                "name": "field_int_index",
+                "type": "SCALAR",
+            },
+        },
+        {
+            "name": "field_vector",
+            "type": "vector",
+            "dimension": 128,
+            "index": {
+                "name": "gamma",
+                "type": "IVFPQ",
+                "params": {
+                    "metric_type": "InnerProduct",
+                    "ncentroids": 2048,
+                    "nlinks": 32,
+                    "efConstruction": 40,
+                },
+            },
+        }
+    ]
+}
+' http://master_server/dbs/$db_name/spaces
 
 
 Parameter description:
@@ -62,8 +77,6 @@ Parameter description:
 +---------------+-------------------+------------+------+--------------------+
 | replica_num   | replica number    | int        | true |                    |
 +---------------+-------------------+------------+------+--------------------+
-| index         | index config      | json       | true |                    |
-+---------------+-------------------+------------+------+--------------------+
 | fields        | schema config     | json       | true | define space field |
 +---------------+-------------------+------------+------+--------------------+
 
@@ -75,35 +88,44 @@ Parameter description:
 
 index config:
 
-+--------------+-----------------------+------------+-------+---------+
-|  field name  |   field description   | field type | must  | remarks |
-+==============+=======================+============+=======+=========+
-| index_name   | slice index threshold | int        | false |         |
-+--------------+-----------------------+------------+-------+---------+
-| index_type   | index type            | string     | true  |         |
-+--------------+-----------------------+------------+-------+---------+
-| index_params | index parameters      | json       | false |         |
-+--------------+-----------------------+------------+-------+---------+
++------------+-------------------+------------+------+---------+
+| field name | field description | field type | must | remarks |
++============+===================+============+======+=========+
+| name       | index name        | string     | true |         |
++------------+-------------------+------------+------+---------+
+| type       | index type        | string     | true |         |
++------------+-------------------+------------+------+---------+
+| params     | index parameters  | json       | true |         |
++------------+-------------------+------------+------+---------+
 
-1. index_type search model, now support IVFPQ，HNSW，GPU，IVFFLAT，BINARYIVF，FLAT.
+1. Index type
+Index type currently supports seven types in two categories, scalar index: SCALAR; 
+vector index: IVFPQ, HNSW, GPU, IVFFLAT, BINARYIVF, FLAT, please see the link for details
+https://github.com/vearch/vearch/wiki/Vearch%E7%B4%A2%E5%BC%95%E4%BB%8B%E7%BB%8D%E5%92%8C%E5%8F% 82%E6%95%B0%E9%80%89%E6%8B%A9.
+
+Scalar indexes only need to set name and type.
+
+The parameter configurations and default values required for different vector index types are as follows:
 
 IVFPQ:
 
-+--------------------+--------------------------------+------------+-------+-------------------------+
-|     field name     |       field description        | field type | must  |         remarks         |
-+====================+================================+============+=======+=========================+
-| metric_type        | computer type                  | string     | false | L2 orInnerProduct       |
-+--------------------+--------------------------------+------------+-------+-------------------------+
-| ncentroids         | number of buckets for indexing | int        | false | default 2048            |
-+--------------------+--------------------------------+------------+-------+-------------------------+
-| nsubvector         | PQ disassembler vector size    | int        | false | default 64              |
-+--------------------+--------------------------------+------------+-------+-------------------------+
-| bucket_init_size   | bucket init size               | int        | false | default 1000            |
-+--------------------+--------------------------------+------------+-------+-------------------------+
-| bucket_max_size    | max size for each bucket       | int        | false | default 1280000         |
-+--------------------+--------------------------------+------------+-------+-------------------------+
-| training_threshold | training data size             | int        | false | default ncentroids * 39 |
-+--------------------+--------------------------------+------------+-------+-------------------------+
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+|     field name     |                  field description                   | field type | must  |                                                                remarks                                                                 |
++====================+======================================================+============+=======+========================================================================================================================================+
+| metric_type        | computer type                                        | string     | true  | L2 orInnerProduct                                                                                                                      |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ncentroids         | number of buckets for indexing                       | int        | true  | default 2048                                                                                                                           |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| nsubvector         | PQ disassembler vector size                          | int        | false | default 64                                                                                                                             |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| bucket_init_size   | bucket init size                                     | int        | false | default 1000                                                                                                                           |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| bucket_max_size    | max size for each bucket                             | int        | false | default 1280000                                                                                                                        |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| training_threshold | training data size                                   | int        | false | The default training_threshold * 39 is the amount of data required for each shard training, not the amount of data in the space table. |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| nprobe             | the number of cluster centers found during retrieval | int        | false | default 80                                                                                                                             |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 ::
  
@@ -154,22 +176,23 @@ HNSW:
   }
 
   Note: 1. Vector storage only supports MemoryOnly
-        2. No training is required to create an index, and the index_size value can be greater than 0
-
 
 GPU (Compiled version for GPU):
 
-+--------------------+--------------------------------+------------+-------+-------------------------------------+
-|     field name     |       field description        | field type | must  |               remarks               |
-+====================+================================+============+=======+=====================================+
-| metric_type        | computer type                  | string     | true  | L2 orInnerProduct                   |
-+--------------------+--------------------------------+------------+-------+-------------------------------------+
-| ncentroids         | number of buckets for indexing | int        | false | default 2048                        |
-+--------------------+--------------------------------+------------+-------+-------------------------------------+
-| nsubvector         | PQ disassembler vector size    | int        | false | default 64, must be a multiple of 4 |
-+--------------------+--------------------------------+------------+-------+-------------------------------------+
-| training_threshold | training data size             | int        | false | default ncentroids * 39             |
-+--------------------+--------------------------------+------------+-------+-------------------------------------+
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+|     field name     |                  field description                   | field type | must  |                                                                remarks                                                                 |
++====================+======================================================+============+=======+========================================================================================================================================+
+| metric_type        | computer type                                        | string     | true  | L2 orInnerProduct                                                                                                                      |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ncentroids         | number of buckets for indexing                       | int        | true  | default 2048                                                                                                                           |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| nsubvector         | PQ disassembler vector size                          | int        | false | default 64, must be a multiple of 4                                                                                                    |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| training_threshold | training data size                                   | int        | false | The default training_threshold * 39 is the amount of data required for each shard training, not the amount of data in the space table. |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| nprobe             | the number of cluster centers found during retrieval | int        | false | default 80                                                                                                                             |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+
 ::
  
   "index_type": "GPU",
@@ -181,15 +204,18 @@ GPU (Compiled version for GPU):
 
 IVFFLAT:
 
-+--------------------+--------------------------------+------------+---------+-------------------------+
-|     field name     |       field description        | field type |  must   |         remarks         |
-+====================+================================+============+=========+=========================+
-| metric_type        | computer type                  | string     | true    | L2 orInnerProduct       |
-+--------------------+--------------------------------+------------+---------+-------------------------+
-| ncentroids         | number of buckets for indexing | int        | default | default 256             |
-+--------------------+--------------------------------+------------+---------+-------------------------+
-| training_threshold | training data size             | int        | false   | default ncentroids * 39 |
-+--------------------+--------------------------------+------------+---------+-------------------------+
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+|     field name     |                  field description                   | field type | must  |                                                                remarks                                                                 |
++====================+======================================================+============+=======+========================================================================================================================================+
+| metric_type        | computer type                                        | string     | true  | L2 orInnerProduct                                                                                                                      |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ncentroids         | number of buckets for indexing                       | int        | true  | default 256                                                                                                                            |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| training_threshold | training data size                                   | int        | false | The default training_threshold * 39 is the amount of data required for each shard training, not the amount of data in the space table. |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+| nprobe             | the number of cluster centers found during retrieval | int        | false | default 80                                                                                                                             |
++--------------------+------------------------------------------------------+------------+-------+----------------------------------------------------------------------------------------------------------------------------------------+
+
 ::
  
   "index_type": "IVFFLAT",
@@ -202,13 +228,16 @@ IVFFLAT:
 
 BINARYIVF:
 
-+--------------------+--------------------------------+------------+---------+-------------------------+
-|     field name     |       field description        | field type |  must   |         remarks         |
-+====================+================================+============+=========+=========================+
-| ncentroids         | number of buckets for indexing | int        | default | default 256             |
-+--------------------+--------------------------------+------------+---------+-------------------------+
-| training_threshold | training data size             | int        | false   | default ncentroids * 39 |
-+--------------------+--------------------------------+------------+---------+-------------------------+
++--------------------+------------------------------------------------------+------------+---------+----------------------------------------------------------------------------------------------------------------------------------------+
+|     field name     |                  field description                   | field type |  must   |                                                                remarks                                                                 |
++====================+======================================================+============+=========+========================================================================================================================================+
+| ncentroids         | number of buckets for indexing                       | int        | true | default 256                                                                                                                            |
++--------------------+------------------------------------------------------+------------+---------+----------------------------------------------------------------------------------------------------------------------------------------+
+| training_threshold | training data size                                   | int        | false   | The default training_threshold * 39 is the amount of data required for each shard training, not the amount of data in the space table. |
++--------------------+------------------------------------------------------+------------+---------+----------------------------------------------------------------------------------------------------------------------------------------+
+| nprobe             | the number of cluster centers found during retrieval | int        | false   | default 80                                                                                                                             |
++--------------------+------------------------------------------------------+------------+---------+----------------------------------------------------------------------------------------------------------------------------------------+
+
 ::
  
   "index_type": "BINARYIVF",
@@ -237,11 +266,11 @@ FLAT:
 
 fields config:
 
-1. There are four types (that is, the value of type) supported by the field defined by the table space structure: keyword, integer, float, vector (keyword is equivalent to string).
+1. There are seven types (that is, the value of type) supported by the field defined by the table space structure: string(keyword)，stringArray, integer， long， float，double， vector (keyword is equivalent to string).
 
-2. The keyword type fields support index and array attributes. Index defines whether to create an index, and array specifies whether to allow multiple values.
+2. The string type fields(include stringArray) support index. Index defines whether to create an index.
 
-3. Integer, float type fields support the index attribute, and the fields with index set to true support the use of numeric range filtering queries.
+3. Integer, float, long, double type fields support the index attribute, and the fields with index set to true support the use of numeric range filtering queries.
 
 4. Vector type fields are feature fields. Multiple feature fields are supported in a table space. The attributes supported by vector type fields are as follows:
 
@@ -282,6 +311,17 @@ View Space
   
   curl -XGET http://master_server/dbs/$db_name/spaces/$space_name
 
+返回数据详细格式：
++----------+----------------+--------+--------------+------+
+| 字段标识 |    字段含义    |  类型  | 是否一定返回 | 备注 |
++==========+================+========+==============+======+
+| code     | return code    | int    | 是           |      |
++----------+----------------+--------+--------------+------+
+| msg      | return message | string | 否           |      |
++----------+----------------+--------+--------------+------+
+| data     | return data    | json   | 否           |      |
++----------+----------------+--------+--------------+------+
+
 return data:
 
 +---------------+-------------------------------------+-------------+------+------------------------------------------+
@@ -308,77 +348,103 @@ return data:
 
 return format:
 ::
-  {
-      "code": 200,
-      "msg": "success",
-      "data": {
-          "space_name": "ts_space",
-          "db_name": "ts_db",
-          "doc_num": 0,
-          "partition_num": 1,
-          "replica_num": 1,
-          "schema": {
-              "fields": {
-                  "field_string": {
-                      "type": "keyword"
-                  },
-                  "field_int": {
-                      "type": "integer"
-                  },
-                  "field_float": {
-                      "type": "float",
-                      "index": true
-                  },
-                  "field_string_array": {
-                      "type": "string",
-                      "array": true,
-                      "index": true
-                  },
-                  "field_int_index": {
-                      "type": "integer",
-                      "index": true
-                  },
-                  "field_vector": {
-                      "type": "vector",
-                      "dimension": 128
-                  },
-                  "field_vector_normal": {
-                      "type": "vector",
-                      "dimension": 256,
-                      "format": "normalization"
-                  }
-              },
-              "index": {
-                  "index_name": "gamma",
-                  "index_type": "HNSW",
-                  "index_params": {
-                      "metric_type": "InnerProduct",
-                      "ncentroids": 2048,
-                      "nsubvector": 32,
-                      "nlinks": 32,
-                      "efConstruction": 40,
-                      "nprobe": 80,
-                      "efSearch": 64,
-                      "training_threshold": 70000
-                  }
-              }
-          },
-          "status": "green",
-          "partitions": [
-              {
-                  "pid": 4,
-                  "replica_num": 1,
-                  "status": 4,
-                  "color": "green",
-                  "ip": "127.0.0.1",
-                  "node_id": 1,
-                  "index_status": 0,
-                  "index_num": 0,
-                  "max_docid": -1
-              }
-          ],
-      }
-  }
+    {
+        "code": 0,
+        "data": {
+            "space_name": "ts_space",
+            "db_name": "ts_db",
+            "doc_num": 0,
+            "partition_num": 1,
+            "replica_num": 3,
+            "schema": {
+                "fields": [
+                    {
+                        "name": "field_string",
+                        "type": "string"
+                    },
+                    {
+                        "name": "field_int",
+                        "type": "integer"
+                    },
+                    {
+                        "name": "field_float",
+                        "type": "float",
+                        "index": {
+                            "name": "field_float",
+                            "type": "SCALAR"
+                        }
+                    },
+                    {
+                        "name": "field_string_array",
+                        "type": "stringArray",
+                        "index": {
+                            "name": "field_string_array",
+                            "type": "SCALAR"
+                        }
+                    },
+                    {
+                        "name": "field_int_index",
+                        "type": "integer",
+                        "index": {
+                            "name": "field_int_index",
+                            "type": "SCALAR"
+                        }
+                    },
+                    {
+                        "name": "field_vector",
+                        "type": "vector",
+                        "dimension": 128,
+                        "index": {
+                            "name": "gamma",
+                            "type": "IVFPQ",
+                            "params": {
+                                "metric_type": "InnerProduct",
+                                "ncentroids": 2048,
+                                "nlinks": 32,
+                                "efConstruction": 40
+                            }
+                        }
+                    }
+                ]
+            },
+            "status": "green",
+            "partitions": [
+                {
+                    "pid": 1,
+                    "replica_num": 1,
+                    "status": 4,
+                    "color": "green",
+                    "ip": "x.x.x.x",
+                    "node_id": 1,
+                    "index_status": 0,
+                    "index_num": 0,
+                    "max_docid": -1
+                },
+                {
+                    "pid": 2,
+                    "replica_num": 1,
+                    "status": 4,
+                    "color": "green",
+                    "ip": "x.x.x.x",
+                    "node_id": 2,
+                    "index_status": 0,
+                    "index_num": 0,
+                    "max_docid": -1
+                },
+                {
+                    "pid": 3,
+                    "replica_num": 1,
+                    "status": 4,
+                    "color": "green",
+                    "ip": "x.x.x.x",
+                    "node_id": 3,
+                    "index_status": 0,
+                    "index_num": 0,
+                    "max_docid": -1
+                }
+            ],
+        }
+    }
 
 more information:
 ::
@@ -388,107 +454,193 @@ more information:
 return format:
 ::
 
-  {
-      "code": 200,
-      "msg": "success",
-      "data": {
-          "space_name": "ts_space",
-          "db_name": "ts_db",
-          "doc_num": 0,
-          "partition_num": 1,
-          "replica_num": 1,
-          "schema": {
-              "fields": {
-                  "field_string": {
-                      "type": "keyword"
-                  },
-                  "field_int": {
-                      "type": "integer"
-                  },
-                  "field_float": {
-                      "type": "float",
-                      "index": true
-                  },
-                  "field_string_array": {
-                      "type": "string",
-                      "array": true,
-                      "index": true
-                  },
-                  "field_int_index": {
-                      "type": "integer",
-                      "index": true
-                  },
-                  "field_vector": {
-                      "type": "vector",
-                      "dimension": 128
-                  },
-                  "field_vector_normal": {
-                      "type": "vector",
-                      "dimension": 256,
-                      "format": "normalization"
-                  }
-              },
-              "index": {
-                  "index_name": "gamma",
-                  "index_type": "HNSW",
-                  "index_params": {
-                      "metric_type": "InnerProduct",
-                      "ncentroids": 2048,
-                      "nsubvector": 32,
-                      "nlinks": 32,
-                      "efConstruction": 40,
-                      "nprobe": 80,
-                      "efSearch": 64,
-                      "training_threshold": 70000
-                  }
-              }
-          },
-          "status": "green",
-          "partitions": [
-              {
-                  "pid": 137,
-                  "replica_num": 1,
-                  "path": "/home/zc/program/vearch/deploy/export/Data/datas/",
-                  "status": 4,
-                  "color": "green",
-                  "ip": "127.0.0.1",
-                  "node_id": 1,
-                  "raft_status": {
-                      "ID": 137,
-                      "NodeID": 1,
-                      "Leader": 1,
-                      "Term": 1,
-                      "Index": 1,
-                      "Commit": 1,
-                      "Applied": 1,
-                      "Vote": 1,
-                      "PendQueue": 0,
-                      "RecvQueue": 0,
-                      "AppQueue": 0,
-                      "Stopped": false,
-                      "RestoringSnapshot": false,
-                      "State": "StateLeader",
-                      "Replicas": {
-                          "1": {
-                              "Match": 1,
-                              "Commit": 1,
-                              "Next": 2,
-                              "State": "ReplicaStateProbe",
-                              "Snapshoting": false,
-                              "Paused": false,
-                              "Active": true,
-                              "LastActive": "2024-03-18T09: 59: 17.095112556+08: 00",
-                              "Inflight": 0
-                          }
-                      }
-                  },
-                  "index_status": 0,
-                  "index_num": 0,
-                  "max_docid": -1
-              }
-          ]
-      }
-  }
+    {
+        "code": 0,
+        "data": {
+            "space_name": "ts_space",
+            "db_name": "ts_db",
+            "doc_num": 0,
+            "partition_num": 1,
+            "replica_num": 3,
+            "schema": {
+                "fields": [
+                    {
+                        "name": "field_string",
+                        "type": "string"
+                    },
+                    {
+                        "name": "field_int",
+                        "type": "integer"
+                    },
+                    {
+                        "name": "field_float",
+                        "type": "float",
+                        "index": {
+                            "name": "field_float",
+                            "type": "SCALAR"
+                        }
+                    },
+                    {
+                        "name": "field_string_array",
+                        "type": "stringArray",
+                        "index": {
+                            "name": "field_string_array",
+                            "type": "SCALAR"
+                        }
+                    },
+                    {
+                        "name": "field_int_index",
+                        "type": "integer",
+                        "index": {
+                            "name": "field_int_index",
+                            "type": "SCALAR"
+                        }
+                    },
+                    {
+                        "name": "field_vector",
+                        "type": "vector",
+                        "dimension": 128,
+                        "index": {
+                            "name": "gamma",
+                            "type": "IVFPQ",
+                            "params": {
+                                "metric_type": "InnerProduct",
+                                "ncentroids": 2048,
+                                "nlinks": 32,
+                                "efConstruction": 40
+                            }
+                        }
+                    }
+                ]
+            },
+            "status": "green",
+            "partitions": [
+                {
+                    "pid": 1,
+                    "replica_num": 1,
+                    "path": "/export/Data/datas/",
+                    "status": 4,
+                    "color": "green",
+                    "ip": "x.x.x.x",
+                    "node_id": 1,
+                    "raft_status": {
+                        "ID": 1,
+                        "NodeID": 1,
+                        "Leader": 1,
+                        "Term": 1,
+                        "Index": 1,
+                        "Commit": 1,
+                        "Applied": 1,
+                        "Vote": 1,
+                        "PendQueue": 0,
+                        "RecvQueue": 0,
+                        "AppQueue": 0,
+                        "Stopped": false,
+                        "RestoringSnapshot": false,
+                        "State": "StateLeader",
+                        "Replicas": {
+                            "1": {
+                                "Match": 1,
+                                "Commit": 1,
+                                "Next": 2,
+                                "State": "ReplicaStateProbe",
+                                "Snapshoting": false,
+                                "Paused": false,
+                                "Active": true,
+                                "LastActive": "2024-03-18T09: 59: 17.095112556+08: 00",
+                                "Inflight": 0
+                            }
+                        }
+                    },
+                    "index_status": 0,
+                    "index_num": 0,
+                    "max_docid": -1
+                },
+                {
+                    "pid": 2,
+                    "replica_num": 1,
+                    "path": "/export/Data/datas/",
+                    "status": 4,
+                    "color": "green",
+                    "ip": "x.x.x.x",
+                    "node_id": 2,
+                    "raft_status": {
+                        "ID": 2,
+                        "NodeID": 1,
+                        "Leader": 1,
+                        "Term": 1,
+                        "Index": 1,
+                        "Commit": 1,
+                        "Applied": 1,
+                        "Vote": 1,
+                        "PendQueue": 0,
+                        "RecvQueue": 0,
+                        "AppQueue": 0,
+                        "Stopped": false,
+                        "RestoringSnapshot": false,
+                        "State": "StateLeader",
+                        "Replicas": {
+                            "1": {
+                                "Match": 1,
+                                "Commit": 1,
+                                "Next": 2,
+                                "State": "ReplicaStateProbe",
+                                "Snapshoting": false,
+                                "Paused": false,
+                                "Active": true,
+                                "LastActive": "2024-03-18T09: 59: 17.095112556+08: 00",
+                                "Inflight": 0
+                            }
+                        }
+                    },
+                    "index_status": 0,
+                    "index_num": 0,
+                    "max_docid": -1
+                },
+                {
+                    "pid": 3,
+                    "replica_num": 1,
+                    "path": "/export/Data/datas/",
+                    "status": 4,
+                    "color": "green",
+                    "ip": "x.x.x.x",
+                    "node_id": 3,
+                    "raft_status": {
+                        "ID": 3,
+                        "NodeID": 1,
+                        "Leader": 1,
+                        "Term": 1,
+                        "Index": 1,
+                        "Commit": 1,
+                        "Applied": 1,
+                        "Vote": 1,
+                        "PendQueue": 0,
+                        "RecvQueue": 0,
+                        "AppQueue": 0,
+                        "Stopped": false,
+                        "RestoringSnapshot": false,
+                        "State": "StateLeader",
+                        "Replicas": {
+                            "1": {
+                                "Match": 1,
+                                "Commit": 1,
+                                "Next": 2,
+                                "State": "ReplicaStateProbe",
+                                "Snapshoting": false,
+                                "Paused": false,
+                                "Active": true,
+                                "LastActive": "2024-03-18T09: 59: 17.095112556+08: 00",
+                                "Inflight": 0
+                            }
+                        }
+                    },
+                    "index_status": 0,
+                    "index_num": 0,
+                    "max_docid": -1
+                }
+            ]
+        }
+    }
 
 Delete Space
 ------------

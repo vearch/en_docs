@@ -1,10 +1,10 @@
 Database Operation
-=================
+==================================
 
 http://master_server is the master service, $db_name is the name of the created database.
 
 List Database
---------
+------------------------
 
 ::
 
@@ -12,7 +12,7 @@ List Database
 
 
 Create Database
---------
+------------------------
 
 ::
 
@@ -20,7 +20,7 @@ Create Database
 
 
 View Database
---------
+------------------------
 
 ::
 
@@ -28,7 +28,7 @@ View Database
 
 
 Delete Database
---------
+------------------------
 
 ::
 
@@ -36,8 +36,8 @@ Delete Database
 
 Cannot delete if there is a table space under the datebase.
 
-View Database Space
---------
+View Database Spaces
+------------------------
 
 ::
 

@@ -15,6 +15,7 @@ Vearch System Introduction
    use_op/op_cluster.rst
    use_op/op_db.rst
    use_op/op_space.rst
+   use_op/op_alias.rst
    use_op/op_doc.rst
 
 .. toctree::

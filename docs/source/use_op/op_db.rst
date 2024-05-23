@@ -1,14 +1,14 @@
 Database Operation
 ==================================
 
-http://master_server is the master service, $db_name is the name of the created database.
+http://${VEARCH_URL} is the vearch service, $db_name is the name of the created database.
 
 List Database
 ------------------------
 
 ::
 
-   curl -XGET http://master_server/dbs
+   curl -XGET http://${VEARCH_URL}/dbs
 
 
 Create Database
@@ -16,7 +16,7 @@ Create Database
 
 ::
 
-   curl -XPOST http://master_server/dbs/$db_name
+   curl -XPOST http://${VEARCH_URL}/dbs/$db_name
 
 
 View Database
@@ -24,7 +24,7 @@ View Database
 
 ::
 
-   curl -XGET http://master_server/dbs/$db_name
+   curl -XGET http://${VEARCH_URL}/dbs/$db_name
 
 
 Delete Database
@@ -32,7 +32,7 @@ Delete Database
 
 ::
 
-   curl -XDELETE http://master_server/dbs/$db_name
+   curl -XDELETE http://${VEARCH_URL}/dbs/$db_name
 
 Cannot delete if there is a table space under the datebase.
 
@@ -41,7 +41,4 @@ View Database Spaces
 
 ::
 
-   curl -XGET http://master_server/dbs/$db_name/spaces
-
-
-
+   curl -XGET http://${VEARCH_URL}/dbs/$db_name/spaces

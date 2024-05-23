@@ -223,12 +223,12 @@ Find based on Filter expression of custom scalar field
             "conditions": [
                 {
                     "field": "field_int",
-                    "operator": >=,
+                    "operator": ">=",
                     "value": 1
                 },
                 {
                     "field": "field_int",
-                    "operator": <=,
+                    "operator": "<=",
                     "value": 3
                 }
             ]
@@ -299,7 +299,7 @@ The overall json structure of the query parameters is as follows:
 
     {
         "vectors": [],
-        "filters": []
+        "filters": [],
         "index_params": {"nprobe": 20},
         "fields": ["field1", "field2"],
         "is_brute_search": 0,
@@ -308,7 +308,7 @@ The overall json structure of the query parameters is as follows:
         "limit": 10,
         "ranker": {
             "type": "WeightedRanker",
-            "params": [0.5, 0.5],
+            "params": [0.5, 0.5]
         }
     }
 
@@ -499,7 +499,7 @@ search interface return format
                     "field_double": 207598,
                     "field_float": 107598,
                     "field_int": 6598,
-                    "field_string": "6598",
+                    "field_string": "6598"
                 }, {
                     "_id": "-104688682735192253",
                     "_score": 17.663991928100586,
@@ -546,12 +546,12 @@ Delete documents that meet the filter conditions. size specifies the number of i
             "conditions": [
                 {
                     "field": "field_int",
-                    "operator": >=,
+                    "operator": ">=",
                     "value": 1
                 },
                 {
                     "field": "field_int",
-                    "operator": <=,
+                    "operator": "<=",
                     "value": 3
                 }
             ]

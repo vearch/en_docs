@@ -17,6 +17,7 @@ Vearch System Introduction
    use_op/op_space.rst
    use_op/op_alias.rst
    use_op/op_doc.rst
+   use_op/op_backup_migrate.rst
 
 .. toctree::
       :maxdepth: 1

@@ -396,7 +396,7 @@ Refer to the description of filter json in the query interface section.
 
 - limit: Specifies the maximum number of results to return. use the limit value specified in the URL first.
 
-- load_balance: leader, random, no_leader, least_connection, default random。
+- load_balance: leader, random, not_leader, least_connection, default random.
 
 Search based on vector
 Supports single or multiple queries. Multiple queries can splice the features of multiple queries into a feature array (such as defining 128-dimensional features and querying 10 in batches.

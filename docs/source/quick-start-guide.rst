@@ -12,7 +12,7 @@ Environmental dependence
 3. gcc >= 5 required.(recommend gcc >= 9 if want to use scann)
 4. cmake >= 3.17 required.
 5. OpenBLAS.
-6. tbb，In CentOS it can be installed by yum. Such as: yum install tbb-devel.x86_64.
+6. tbb, in CentOS it can be installed by yum. Such as: yum install tbb-devel.x86_64.
 7. RocksDB == 6.2.2 (optional). You don't need to install it manually, the script installs it automatically. But you need to manually install the dependencies of rocksdb. Please refer to the installation method: https://github.com/facebook/rocksdb/blob/master/INSTALL.md
 8. CUDA >= 9.0, if you want GPU support.
 

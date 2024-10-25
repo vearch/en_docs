@@ -178,13 +178,13 @@ conditions format description:
 +============+============+======+==========================+
 | field      | string     | true |                          |
 +------------+------------+------+--------------------------+
-| operator   | string     | true | support >, >=, <, <=, IN |
+| operator   | string     | true | support >, >=, <, <=, IN, NOT IN |
 +------------+------------+------+--------------------------+
 | value      | json       | true |                          |
 +------------+------------+------+--------------------------+
 
 (2) conditions specific filtering conditions, currently supports two types of field type filtering, numeric type and string type (including string array type)
-Numeric type operators: >, >=, <, <=; String operator type IN
+Numeric type operators: >, >=, <, <=; String operator type IN, NOT IN.
 
 Find data based on unique id identifier
 ::

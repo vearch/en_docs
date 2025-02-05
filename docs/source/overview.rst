@@ -37,7 +37,7 @@ Overall Architecture
 
 Data Model: space, documents, vectors, scalars
 
-Components: Master，Routerm，PartitionServer。
+Components: Master,Routerm,PartitionServer.
 
 Master: Responsible for schema mananagement, cluster-level metadata, and resource coordination.
 

@@ -1,7 +1,7 @@
 Space Operation
 ==================================
 
-http://master_server is the master service, $db_name is the name of the created database, $space_name is the name of the created space.
+http://${VEARCH_URL} is the vearch service, $db_name is the name of the created database, $space_name is the name of the created space.
 
 Create Space
 ------------------------
@@ -63,7 +63,7 @@ Create Space
             }
         ]
     }
-    ' http://master_server/dbs/$db_name/spaces
+    ' http://${VEARCH_URL}/dbs/$db_name/spaces
 
 
 Parameter description:
@@ -136,7 +136,7 @@ IVFPQ:
       "nsubvector": 64
   }
 
-set ivfpq with hnsw：
+set ivfpq with hnsw:
 
 ::
 
@@ -266,7 +266,7 @@ FLAT:
 
 fields config:
 
-1. There are seven types (that is, the value of type) supported by the field defined by the table space structure: string(keyword)，stringArray, integer， long， float，double， vector (keyword is equivalent to string).
+1. There are seven types (that is, the value of type) supported by the field defined by the table space structure: string(keyword), stringArray, integer,  long,  float, double,  vector (keyword is equivalent to string).
 
 2. The string type fields(include stringArray) support index. Index defines whether to create an index.
 
@@ -309,7 +309,7 @@ View Space
 --------------------
 ::
 
-  curl -XGET http://master_server/dbs/$db_name/spaces/$space_name
+  curl -XGET http://${VEARCH_URL}/dbs/$db_name/spaces/$space_name
 
 返回数据详细格式：
 
@@ -451,7 +451,7 @@ return format:
 more information
 ::
 
-  curl -XGET http://master_server/dbs/$db_name/spaces/$space_name?detail=true
+  curl -XGET http://${VEARCH_URL}/dbs/$db_name/spaces/$space_name?detail=true
 
 return format
 ::
@@ -648,4 +648,4 @@ Delete Space
 ------------------------
 ::
  
-  curl -XDELETE http://master_server/dbs/$db_name/spaces/$space_name
+  curl -XDELETE http://${VEARCH_URL}/dbs/$db_name/spaces/$space_name
